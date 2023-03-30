@@ -494,5 +494,8 @@ if __name__ == '__main__':
         for t, w in zip(t, w):
             hsa.hsa_read_data(t, w, 1000.0)
         
-        o_type: int = hsa.hsa_main(file.name, 20.3 * 2.1, 0.015625)
+        omega0 = 20.3
+        time_step = 0.015625
+
+        o_type: int = hsa.hsa_main(file.name, omega0 * 2.1, time_step)
         print(osc_type.as_str(o_type))

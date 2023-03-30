@@ -1,7 +1,7 @@
 # hsa-project
 
 ## How to install
-```cmd
+```
 git clone git@github.com:tzorake/hsa-project.git
 cd hsa-project
 py -m venv venv
