@@ -64,25 +64,24 @@ class Window(QDialog):
 
     
     def random_plot(self):
-        start_time = 1000.0
         file_name = 'txt/01b3ec1f-c6f1-4253-873d-1a3c90251cbb.txt'
+        start_time = 1000.0
         omega0 = 20.3
+        max_omega = omega0 * 2.1
         time_step = 0.015625
 
         data = np.loadtxt(file_name)
         t, w = data[:, 0], data[:, 1]
 
-        for t, w in zip(t, w):
-            self.hsa.hsa_read_data(t, w, start_time)
-        
-        signal_data: list = self.hsa.hsa_array[:]
-        oscillation_type: int = self.hsa.hsa_main(file_name, omega0 * 2.1, time_step)
+        self.hsa.set_data(t, w, start_time)
+        oscillation_type = self.hsa.evaluate(max_omega, time_step)
 
-        fft_data: list = self.hsa.hsa_array[:]
+        signal_data = self.hsa.values
+        fft_data = self.hsa.result
 
         half = len(fft_data)
         nyquist = 1.0 / (2 * time_step)
-        freq = 2.0*np.pi*nyquist*(np.linspace(1, half, half)) / half
+        freq = 2.0 * np.pi * nyquist * (np.linspace(1, half, half)) / half
 
         self.signal_figure.clear()
         signal_ax = self.signal_figure.add_subplot(111)
