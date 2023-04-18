@@ -1,0 +1,37 @@
+{
+    "active_theme": "myset",
+    "color_themes": {
+        "pastel": { 
+            "CHAOS": "#635459",
+            "FAKE": "#FEDDBD",
+            "UNDEF": "#B47A72",
+            "SP_IND_FREQ": "#FEAE66",
+            "IND_FREQ": "#9799F0",
+            "HARMONIC": "#A8A886"
+        },
+        "random": { 
+            "CHAOS": "#3B14AF",
+            "FAKE": "#886ED7",
+            "UNDEF": "#660BAB",
+            "SP_IND_FREQ": "#FFF700",
+            "IND_FREQ": "#A6A000",
+            "HARMONIC": "#A68A00"
+        },
+        "set1": { 
+            "CHAOS":       "#C10001",
+            "FAKE":        "#9D99B8",
+            "UNDEF":       "#D76154",
+            "SP_IND_FREQ": "#783183",
+            "IND_FREQ":    "#DB6000",
+            "HARMONIC":    "#DBDB17"
+        },
+        "myset": { 
+            "CHAOS":       "#0000FF",
+            "FAKE":        "#00FF00",
+            "UNDEF":       "#00FFFF",
+            "SP_IND_FREQ": "#FF0000",
+            "IND_FREQ":    "#FF00FF",
+            "HARMONIC":    "#FFFF00"
+        }
+    }
+}
