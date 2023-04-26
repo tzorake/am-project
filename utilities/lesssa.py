@@ -6,7 +6,6 @@ class LESSSA:
     def __init__(self, e_dim, tau, iterations, eps_min, eps_step, min_neighbors):
         self.lesss = LESpecSanoSawada(e_dim, tau, iterations, eps_min, eps_step, min_neighbors)
 
-
     def set_data(self, time, values, start_time = -1, end_time = -1):
         start_time = time[0] if start_time == -1 else start_time
         end_time = time[-1] if end_time == -1 else end_time
@@ -22,7 +21,6 @@ class LESSSA:
 
         self.data = values[start_index:end_index]
 
-
     def evaluate(self):
         if (self.data is None):
             raise Exception("self.data is used before initialization")
@@ -35,7 +33,7 @@ class LESSSA:
         result = self.lesss.result
         filtered = list(filter(lambda x: x < 0, result))
 
-        return len(filtered)
+        return len(filtered), result
 
 
 if __name__ == '__main__':

@@ -20,18 +20,6 @@ class osc_type:
             osc_type.IND_FREQ    : 'IND_FREQ',
             osc_type.HARMONIC    : 'HARMONIC',
         }
-
-
-    @staticmethod
-    def colors() -> dict:
-        return {
-            osc_type.CHAOS       : '#440154',
-            osc_type.FAKE        : '#00ff00',
-            osc_type.UNDEF       : '#20908c',
-            osc_type.SP_IND_FREQ : '#5ec961',
-            osc_type.IND_FREQ    : '#fde724',
-            osc_type.HARMONIC    : '#0f0f0f',
-        }
     
 
     @staticmethod
@@ -100,7 +88,6 @@ class HeuristicSpectrumAnalyzer:
                     current_type = simple_nums[i]
                 else: 
                     current_type = osc_type.HARMONIC
-
                 break
         
         if(current_type == 0):

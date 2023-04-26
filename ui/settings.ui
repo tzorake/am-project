@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>600</height>
+    <width>605</width>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,7 +39,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="folderPath">
           <property name="minimumSize">
            <size>
             <width>0</width>
@@ -49,7 +49,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="openButton">
           <property name="text">
            <string>Обзор</string>
           </property>
@@ -81,10 +81,10 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_14">
                  <item>
-                  <widget class="QLineEdit" name="lineEdit_2"/>
+                  <widget class="QLineEdit" name="filenamePattern"/>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="pushButton_3">
+                  <widget class="QPushButton" name="checkButton">
                    <property name="text">
                     <string>Проверить</string>
                    </property>
@@ -151,7 +151,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QSpinBox" name="spinBox">
+                    <widget class="QSpinBox" name="timeColumn">
                      <property name="enabled">
                       <bool>false</bool>
                      </property>
@@ -181,7 +181,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QSpinBox" name="spinBox_2">
+                    <widget class="QSpinBox" name="valuesColumn">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -237,18 +237,21 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox">
+                    <widget class="QDoubleSpinBox" name="start">
                      <property name="minimumSize">
                       <size>
-                       <width>50</width>
+                       <width>100</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>50</width>
+                       <width>100</width>
                        <height>16777215</height>
                       </size>
+                     </property>
+                     <property name="maximum">
+                      <double>100.000000000000000</double>
                      </property>
                     </widget>
                    </item>
@@ -264,37 +267,27 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+                    <widget class="QDoubleSpinBox" name="end">
                      <property name="minimumSize">
                       <size>
-                       <width>50</width>
+                       <width>100</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>50</width>
+                       <width>100</width>
                        <height>16777215</height>
                       </size>
+                     </property>
+                     <property name="maximum">
+                      <double>100.000000000000000</double>
                      </property>
                     </widget>
                    </item>
                   </layout>
                  </item>
                 </layout>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </item>
@@ -316,7 +309,7 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_11">
                <item>
-                <widget class="QCheckBox" name="checkBox">
+                <widget class="QCheckBox" name="labelsCheckbox">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                    <horstretch>0</horstretch>
@@ -346,7 +339,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_3">
+                <widget class="QLineEdit" name="horizontalLabel">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
@@ -383,7 +376,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_4">
+                <widget class="QLineEdit" name="verticalLabel">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
@@ -425,7 +418,14 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_13">
               <item>
-               <widget class="QWidget" name="widget" native="true">
+               <widget class="QPushButton" name="saveButton">
+                <property name="text">
+                 <string>Сохранить</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QWidget" name="status" native="true">
                 <property name="minimumSize">
                  <size>
                   <width>22</width>
@@ -443,32 +443,32 @@
                 </property>
                </widget>
               </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string/>
+               <widget class="QProgressBar" name="progressBar">
+                <property name="value">
+                 <number>24</number>
+                </property>
+                <property name="textVisible">
+                 <bool>false</bool>
+                </property>
+                <property name="invertedAppearance">
+                 <bool>false</bool>
+                </property>
+                <property name="format">
+                 <string>%p%</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
             <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QPushButton" name="pushButton_2">
               <property name="text">
-               <string>Посчитать</string>
+               <string>Вычислить</string>
               </property>
              </widget>
             </item>

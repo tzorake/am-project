@@ -65,8 +65,6 @@ class LESpecSanoSawada:
         self.eps_step = eps_step
         self.min_neighbors = min_neighbors
         
-        self.result = np.zeros(e_dim, dtype=np.float64)
-
         self.error_avg = 0.0
         self.neighbors_avg = 0.0
         self.eps_avg = 0.0
@@ -78,6 +76,8 @@ class LESpecSanoSawada:
 
 
     def calculate(self, time_series):
+        self.result = np.zeros(self.e_dim, dtype=np.float64)
+
         series = time_series[:]
         
         if (self.iterations == 0):

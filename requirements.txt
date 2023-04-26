@@ -1,3 +1,5 @@
 numpy
 matplotlib
 pyqt6
+pyside6
+tqdm
