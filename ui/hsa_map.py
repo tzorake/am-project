@@ -22,7 +22,6 @@ class FFTItem(QtWidgets.QWidget):
 
         self.setMinimumSize(QtCore.QSize(400, 300))
         self.setMaximumSize(QtCore.QSize(16777215, 300))
-
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.horizontalLayout_2.setContentsMargins(4, 4, 4, 4)
@@ -33,15 +32,10 @@ class FFTItem(QtWidgets.QWidget):
         self.name.setObjectName("name")
         self.name.setMinimumSize(QtCore.QSize(0, 24))
         self.name.setMaximumSize(QtCore.QSize(16777215, 24))
-
         self.verticalLayout.addWidget(self.name)
-
         self.fft_figure = plt.figure()
-
         self.fft = FigureCanvas(self.fft_figure)
-
         self.verticalLayout.addWidget(self.fft)
-
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setSpacing(4)
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -49,32 +43,21 @@ class FFTItem(QtWidgets.QWidget):
         self.type.setObjectName("type")
         self.type.setMinimumSize(QtCore.QSize(24, 24))
         self.type.setMaximumSize(QtCore.QSize(24, 24))
-
         oscType = osc_type.as_str(oscType)
-
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["hsa_map"]
-
         color = color_theme[oscType]
         self.type.setStyleSheet(f"background-color: {color}")
-
         self.horizontalLayout.addWidget(self.type)
-
         self.label = QtWidgets.QLabel(self)
         self.label.setObjectName("label")
-
         self.horizontalLayout.addWidget(self.label)
-
         self.verticalLayout.addLayout(self.horizontalLayout)
-
         self.verticalLayout.setStretch(0, 1)
         self.verticalLayout.setStretch(1, 14)
         self.verticalLayout.setStretch(2, 1)
-
         self.horizontalLayout_2.addLayout(self.verticalLayout)
-
         self.setLayout(self.horizontalLayout_2)
-        
         self.name.setText(fileName)
         self.label.setText(oscType)
 
@@ -96,7 +79,6 @@ class FFTWindow(QtWidgets.QMainWindow):
         super(FFTWindow, self).__init__(parent)
 
         self.centralwidget = QtWidgets.QWidget()
-
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -112,17 +94,13 @@ class FFTWindow(QtWidgets.QMainWindow):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-
         self.verticalLayout.addWidget(self.scrollArea)
-
         self.horizontalLayout.addLayout(self.verticalLayout)
-
         self.centralwidget.setLayout(self.horizontalLayout)
         self.setCentralWidget(self.centralwidget)
 
         self.ffts = {}
-
-        self.updateItems()
+        # self.updateItems()
 
     def updateItems(self):
         def clearlayout(layout):
@@ -313,17 +291,29 @@ class HSAMap(QtWidgets.QWidget):
         self.verticalLayout.addLayout(self.verticalLayout_7)
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_12.setObjectName("horizontalLayout_12")
+        self.horizontalLayout_13 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_13.setObjectName("horizontalLayout_13")
         self.saveButton = QtWidgets.QPushButton(parent=self)
         self.saveButton.setObjectName("saveButton")
-        self.horizontalLayout_12.addWidget(self.saveButton)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.horizontalLayout_12.addItem(spacerItem1)
-        self.calculateButton = QtWidgets.QPushButton(parent=self)
-        self.calculateButton.setObjectName("calculateButton")
-        self.horizontalLayout_12.addWidget(self.calculateButton)
+        self.horizontalLayout_13.addWidget(self.saveButton)
+        self.status = QtWidgets.QWidget(parent=self)
+        self.status.setMinimumSize(QtCore.QSize(22, 22))
+        self.status.setMaximumSize(QtCore.QSize(22, 22))
+        self.status.setStyleSheet("background-color: rgba(0, 0, 0, 255);")
+        self.status.setObjectName("status")
+        self.horizontalLayout_13.addWidget(self.status)
+        self.horizontalLayout_12.addLayout(self.horizontalLayout_13)
+        self.progressBar = QtWidgets.QProgressBar(parent=self)
+        self.progressBar.setProperty("value", 24)
+        self.progressBar.setTextVisible(False)
+        self.progressBar.setObjectName("progressBar")
+        self.horizontalLayout_12.addWidget(self.progressBar)
         self.showButton = QtWidgets.QPushButton(parent=self)
         self.showButton.setObjectName("showButton")
         self.horizontalLayout_12.addWidget(self.showButton)
+        self.calculateButton = QtWidgets.QPushButton(parent=self)
+        self.calculateButton.setObjectName("calculateButton")
+        self.horizontalLayout_12.addWidget(self.calculateButton)
         self.verticalLayout.addLayout(self.horizontalLayout_12)
         self.verticalLayout.setStretch(1, 1)
         self.horizontalLayout.addLayout(self.verticalLayout)

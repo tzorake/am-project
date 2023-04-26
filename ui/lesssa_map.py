@@ -106,241 +106,6 @@ class ResultWindow(QtWidgets.QMainWindow):
     def addItem(self, key, value):
         self.elements[key] = value
 
-# class LESSSAMap(QtWidgets.QWidget):
-#     def __init__(self, parent = None):
-#         super(LESSSAMap, self).__init__(parent)
-
-#         self.setObjectName("LESSSAMap")
-
-#         self.map_figure = plt.figure(facecolor='#94F008')
-
-#         self.horizontalLayout = QtWidgets.QHBoxLayout(self)
-#         self.horizontalLayout.setObjectName("horizontalLayout")
-#         self.verticalLayout_5 = QtWidgets.QVBoxLayout()
-#         self.verticalLayout_5.setObjectName("verticalLayout_5")
-#         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_10.setSpacing(6)
-#         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
-#         self.verticalLayout = QtWidgets.QVBoxLayout()
-#         self.verticalLayout.setObjectName("verticalLayout")
-#         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-#         self.groupBox = QtWidgets.QGroupBox(parent=self)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
-#         self.groupBox.setSizePolicy(sizePolicy)
-#         self.groupBox.setObjectName("groupBox")
-#         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBox)
-#         self.verticalLayout_2.setObjectName("verticalLayout_2")
-#         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-#         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
-#         self.verticalLayout_3.setObjectName("verticalLayout_3")
-#         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-#         self.label = QtWidgets.QLabel(parent=self.groupBox)
-#         self.label.setObjectName("label")
-#         self.horizontalLayout_4.addWidget(self.label)
-#         self.eDim = QtWidgets.QLineEdit(parent=self.groupBox)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.eDim.sizePolicy().hasHeightForWidth())
-#         self.eDim.setSizePolicy(sizePolicy)
-#         self.eDim.setObjectName("eDim")
-#         self.horizontalLayout_4.addWidget(self.eDim)
-#         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
-#         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-#         self.label_2 = QtWidgets.QLabel(parent=self.groupBox)
-#         self.label_2.setObjectName("label_2")
-#         self.horizontalLayout_5.addWidget(self.label_2)
-#         self.tau = QtWidgets.QLineEdit(parent=self.groupBox)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.tau.sizePolicy().hasHeightForWidth())
-#         self.tau.setSizePolicy(sizePolicy)
-#         self.tau.setObjectName("tau")
-#         self.horizontalLayout_5.addWidget(self.tau)
-#         self.verticalLayout_3.addLayout(self.horizontalLayout_5)
-#         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-#         self.label_3 = QtWidgets.QLabel(parent=self.groupBox)
-#         self.label_3.setObjectName("label_3")
-#         self.horizontalLayout_6.addWidget(self.label_3)
-#         self.iterations = QtWidgets.QLineEdit(parent=self.groupBox)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.iterations.sizePolicy().hasHeightForWidth())
-#         self.iterations.setSizePolicy(sizePolicy)
-#         self.iterations.setObjectName("iterations")
-#         self.horizontalLayout_6.addWidget(self.iterations)
-#         self.verticalLayout_3.addLayout(self.horizontalLayout_6)
-#         self.horizontalLayout_3.addLayout(self.verticalLayout_3)
-#         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
-#         self.verticalLayout_4.setObjectName("verticalLayout_4")
-#         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-#         self.label_4 = QtWidgets.QLabel(parent=self.groupBox)
-#         self.label_4.setObjectName("label_4")
-#         self.horizontalLayout_7.addWidget(self.label_4)
-#         self.epsMin = QtWidgets.QLineEdit(parent=self.groupBox)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.epsMin.sizePolicy().hasHeightForWidth())
-#         self.epsMin.setSizePolicy(sizePolicy)
-#         self.epsMin.setObjectName("epsMin")
-#         self.horizontalLayout_7.addWidget(self.epsMin)
-#         self.verticalLayout_4.addLayout(self.horizontalLayout_7)
-#         self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-#         self.label_5 = QtWidgets.QLabel(parent=self.groupBox)
-#         self.label_5.setObjectName("label_5")
-#         self.horizontalLayout_8.addWidget(self.label_5)
-#         self.epsStep = QtWidgets.QLineEdit(parent=self.groupBox)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.epsStep.sizePolicy().hasHeightForWidth())
-#         self.epsStep.setSizePolicy(sizePolicy)
-#         self.epsStep.setObjectName("epsStep")
-#         self.horizontalLayout_8.addWidget(self.epsStep)
-#         self.verticalLayout_4.addLayout(self.horizontalLayout_8)
-#         self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
-#         self.label_6 = QtWidgets.QLabel(parent=self.groupBox)
-#         self.label_6.setObjectName("label_6")
-#         self.horizontalLayout_9.addWidget(self.label_6)
-#         self.minNeigh = QtWidgets.QLineEdit(parent=self.groupBox)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.minNeigh.sizePolicy().hasHeightForWidth())
-#         self.minNeigh.setSizePolicy(sizePolicy)
-#         self.minNeigh.setObjectName("minNeigh")
-#         self.horizontalLayout_9.addWidget(self.minNeigh)
-#         self.verticalLayout_4.addLayout(self.horizontalLayout_9)
-#         self.horizontalLayout_3.addLayout(self.verticalLayout_4)
-#         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
-#         self.horizontalLayout_2.addWidget(self.groupBox)
-#         self.verticalLayout.addLayout(self.horizontalLayout_2)
-
-#         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
-
-#         self.map = FigureCanvas(self.map_figure)
-#         self.map.setObjectName("map")
-#         self.map.setMinimumSize(QtCore.QSize(500, 500))
-#         self.map.setMaximumSize(QtCore.QSize(16777215, 16777215))
-
-#         self.horizontalLayout_12.addWidget(self.map)
-#         self.verticalLayout.addLayout(self.horizontalLayout_12)
-
-#         self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
-#         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-#         spacerItem = QtWidgets.QSpacerItem(0, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-#         self.horizontalLayout_11.addItem(spacerItem)
-#         self.calculateButton = QtWidgets.QPushButton(parent=self)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.calculateButton.sizePolicy().hasHeightForWidth())
-#         self.calculateButton.setSizePolicy(sizePolicy)
-#         self.calculateButton.setObjectName("calculateButton")
-#         self.horizontalLayout_11.addWidget(self.calculateButton)
-#         self.showButton = QtWidgets.QPushButton(parent=self)
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
-#         sizePolicy.setHorizontalStretch(0)
-#         sizePolicy.setVerticalStretch(0)
-#         sizePolicy.setHeightForWidth(self.showButton.sizePolicy().hasHeightForWidth())
-#         self.showButton.setSizePolicy(sizePolicy)
-#         self.showButton.setObjectName("showButton")
-#         self.horizontalLayout_11.addWidget(self.showButton)
-#         self.verticalLayout.addLayout(self.horizontalLayout_11)
-#         self.horizontalLayout_10.addLayout(self.verticalLayout)
-#         self.verticalLayout_5.addLayout(self.horizontalLayout_10)
-#         self.horizontalLayout.addLayout(self.verticalLayout_5)
-
-#         self.lesssa = LESSSA(4, 4, 0, 0, 1.2, 30)
-#         self.advancedWindow = AdvancedWindow(self)
-
-#         self.retranslateUi()
-#         QtCore.QMetaObject.connectSlotsByName(self)
-
-    # def retranslateUi(self):
-    #     _translate = QtCore.QCoreApplication.translate
-    #     self.setWindowTitle(_translate("LESSSAMap", "LESSSAMap"))
-    #     self.groupBox.setTitle(_translate("LESSSAMap", "Параметры"))
-    #     self.label.setText(_translate("LESSSAMap", "Размер встраивания"))
-    #     self.label_2.setText(_translate("LESSSAMap", "Задержка восстановления"))
-    #     self.label_3.setText(_translate("LESSSAMap", "Количество итераций"))
-    #     self.label_4.setText(_translate("LESSSAMap", "Начальный размер окрестности"))
-    #     self.label_5.setText(_translate("LESSSAMap", "Коэффициент увеличения окрестности"))
-    #     self.label_6.setText(_translate("LESSSAMap", "Размер окрестности"))
-    #     self.calculateButton.setText(_translate("LESSSAMap", "Вычислить"))
-    #     self.showButton.setText(_translate("LESSSAMap", "Просмотр"))
-
-
-    # def on_calculateButton_clicked(self):
-    #     file_names = Helper.get_file_names('.')
-
-    #     omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
-    #     a0_1 = sorted(list(set([Helper.get_a0_1(file_name) for file_name in file_names])))
-
-    #     values = [[0] * len(a0_1) for _ in range(len(omega0))]
-    #     self.advancedWindow.elements.clear()
-
-    #     start_time = 1700.0
-    #     end_time = 1701.0
-
-    #     for file_name in tqdm(file_names):
-    #         omega0_value = Helper.get_omega0(file_name)
-    #         a0_1_value = Helper.get_a0_1(file_name)
-
-    #         data = np.loadtxt(file_name)
-    #         t, w = data[:, 0], data[:, 1]
-
-    #         la = self.lesssa
-
-    #         la.set_data(t, w, start_time, end_time)
-    #         sp_type, sp_exps = la.evaluate()
-
-    #         i = omega0.index(omega0_value)
-    #         j = a0_1.index(a0_1_value)
-
-    #         values[j][i] = sp_type
-
-    #         self.advancedWindow.elements[file_name] = (sp_type, sp_exps)
-
-    #     color_theme_path = os.path.join(".", "color_theme.json")
-    #     color_theme = Helper.colors(color_theme_path)["lesssa_map"]
-
-    #     colors = [
-    #         color_theme["0"], 
-    #         color_theme["1"],
-    #         color_theme["2"],
-    #         color_theme["3"],
-    #         color_theme["4"],
-    #         color_theme["5"],
-    #     ]
-
-    #     cmap = cl.ListedColormap(colors, len(colors))
-
-    #     self.map_figure.clear()
-    #     map_ax = self.map_figure.add_subplot(111)
-    #     map_ax.set_xticks(list(range(len(omega0))), labels = omega0)
-    #     map_ax.set_yticks(list(range(len(a0_1))), labels = a0_1)
-    #     im = map_ax.imshow(values, cmap = cmap, vmin = -0.5, vmax=5.5, origin='lower')
-    #     self.map_figure.colorbar(im)
-    #     self.map.draw()
-    
-    # def on_showButton_clicked(self):
-    #     self.advancedWindow.updateItems()
-    #     self.advancedWindow.show()
 
 class LESSSAMap(QtWidgets.QWidget):
     def __init__(self, parent = None):
@@ -547,17 +312,29 @@ class LESSSAMap(QtWidgets.QWidget):
         self.verticalLayout.addLayout(self.verticalLayout_7)
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_12.setObjectName("horizontalLayout_12")
+        self.horizontalLayout_13 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_13.setObjectName("horizontalLayout_13")
         self.saveButton = QtWidgets.QPushButton(parent=self)
         self.saveButton.setObjectName("saveButton")
-        self.horizontalLayout_12.addWidget(self.saveButton)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.horizontalLayout_12.addItem(spacerItem1)
-        self.calculateButton = QtWidgets.QPushButton(parent=self)
-        self.calculateButton.setObjectName("calculateButton")
-        self.horizontalLayout_12.addWidget(self.calculateButton)
+        self.horizontalLayout_13.addWidget(self.saveButton)
+        self.status = QtWidgets.QWidget(parent=self)
+        self.status.setMinimumSize(QtCore.QSize(22, 22))
+        self.status.setMaximumSize(QtCore.QSize(22, 22))
+        self.status.setStyleSheet("background-color: rgba(0, 0, 0, 255);")
+        self.status.setObjectName("status")
+        self.horizontalLayout_13.addWidget(self.status)
+        self.horizontalLayout_12.addLayout(self.horizontalLayout_13)
+        self.progressBar = QtWidgets.QProgressBar(parent=self)
+        self.progressBar.setProperty("value", 24)
+        self.progressBar.setTextVisible(False)
+        self.progressBar.setObjectName("progressBar")
+        self.horizontalLayout_12.addWidget(self.progressBar)
         self.showButton = QtWidgets.QPushButton(parent=self)
         self.showButton.setObjectName("showButton")
         self.horizontalLayout_12.addWidget(self.showButton)
+        self.calculateButton = QtWidgets.QPushButton(parent=self)
+        self.calculateButton.setObjectName("calculateButton")
+        self.horizontalLayout_12.addWidget(self.calculateButton)
         self.verticalLayout.addLayout(self.horizontalLayout_12)
         self.verticalLayout.setStretch(1, 1)
         self.horizontalLayout.addLayout(self.verticalLayout)
