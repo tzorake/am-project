@@ -3,16 +3,137 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import matplotlib.colors as cl
+import matplotlib.ticker as mticker
 
-from types import SimpleNamespace
-import numpy as np
-import json
 import os
-
-from PIL import ImageColor
+import json
+import multiprocessing
+import numpy as np
+from tqdm import tqdm
+from concurrent.futures import ProcessPoolExecutor
+from types import SimpleNamespace
+import time
 
 from utilities.helper import Helper
-from utilities.hsa import HeuristicSpectrumAnalyzer, osc_type
+from utilities.hsa import HeuristicSpectrumAnalyzer
+
+INPROGRESS_COLOR = "#7dd3fc"
+RESULT_COLOR = "#6ee7b7"
+ERROR_COLOR = "#f9a8d4"
+
+def handler(file_name):
+    start_time = 1700.0
+    end_time = 2000.0
+    omega = 20.3
+    max_omega = omega * 2.1
+    time_step = 0.015625
+
+    data = np.loadtxt(file_name)
+    t, w = data[:, 0], data[:, 1]
+
+    hsa = HeuristicSpectrumAnalyzer()
+
+    hsa.set_data(t, w, start_time, end_time)
+    oscillation_type = hsa.evaluate(max_omega, time_step)
+
+    fft = hsa.result[:]
+    half = len(fft)
+    nyquist = 1.0 / (2 * time_step)
+    freq = 2.0 * np.pi * nyquist * (np.linspace(1, half, half)) / half
+
+    QtCore.QThread.msleep(1000)
+
+    return file_name, oscillation_type, omega, freq, fft
+
+
+# class Handler(QtCore.QThread):
+#     resultReturned = QtCore.pyqtSignal(list)
+
+#     # def __init__(self, init_value, target: Callable[..., object] | None = None, args: Iterable[Any] = ...) -> None:
+#     #     super(Handler, self).__init__(None, target, None, args, None, daemon=None)
+
+#     #     self.init_value = init_value
+#     #     self.target, self.args = target, args
+
+#     #     print(self.target, self.args)
+
+#     def __init__(self, init_value, target, args) -> None:
+#         super(Handler, self).__init__(None)
+
+#         self.init_value = init_value
+#         self.target, self.args = target, args
+
+#         print(self.target, self.args)
+
+
+#     def run(self):
+#         assert self.target is not None
+#         assert len(self.args) == 1
+
+#         file_names = self.args[0]
+#         n_files = len(file_names)
+
+#         num_cores = multiprocessing.cpu_count()
+#         values = [self.init_value] * len(file_names)
+
+#         pbar = tqdm(total=n_files)
+
+#         with ProcessPoolExecutor(max_workers=num_cores) as executor:
+#             results = []
+
+#             for file_name in file_names:
+#                 future = executor.submit(self.target, file_name)
+#                 results.append(future)
+
+#             for idx, future in enumerate(results):
+#                 result = future.result()
+#                 values[idx] = result
+#                 pbar.update()
+
+#         self.result = values
+
+#         self.resultReturned.emit(self.result)
+
+class Worker(QtCore.QObject):
+    started = QtCore.pyqtSignal()
+    finished = QtCore.pyqtSignal(list)
+    progressChanged = QtCore.pyqtSignal(int)
+
+    def __init__(self, init_value, target, args) -> None:
+        super(Worker, self).__init__(None)
+
+        self.init_value = init_value
+        self.target, self.args = target, args
+
+    def run(self):
+        assert self.target is not None
+        assert len(self.args) == 1
+
+        self.started.emit()
+
+        file_names = self.args[0]
+        n_files = len(file_names)
+
+        num_cores = multiprocessing.cpu_count()
+        values = [self.init_value] * len(file_names)
+
+        pbar = tqdm(total=n_files)
+
+        with ProcessPoolExecutor(max_workers=num_cores) as executor:
+            results = []
+
+            for file_name in file_names:
+                future = executor.submit(self.target, file_name)
+                results.append(future)
+
+            for idx, future in enumerate(results):
+                result = future.result()
+                values[idx] = result
+                pbar.update()
+
+                self.progressChanged.emit(int((idx + 1) / n_files * 100))
+
+        self.finished.emit(values)
 
 
 
@@ -43,11 +164,18 @@ class FFTItem(QtWidgets.QWidget):
         self.type.setObjectName("type")
         self.type.setMinimumSize(QtCore.QSize(24, 24))
         self.type.setMaximumSize(QtCore.QSize(24, 24))
-        oscType = osc_type.as_str(oscType)
+
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["hsa_map"]
-        color = color_theme[oscType]
+        
+        color_values, color_hexes = zip(*list(map(lambda x: (x["value"], x["color"]), color_theme.values())))
+        colors = dict(zip(color_values, color_hexes))
+        color = colors[oscType]
+        color_key_mapping = dict(zip(color_values, list(color_theme.keys())))
+        color_string = color_key_mapping[oscType]
+
         self.type.setStyleSheet(f"background-color: {color}")
+
         self.horizontalLayout.addWidget(self.type)
         self.label = QtWidgets.QLabel(self)
         self.label.setObjectName("label")
@@ -59,7 +187,7 @@ class FFTItem(QtWidgets.QWidget):
         self.horizontalLayout_2.addLayout(self.verticalLayout)
         self.setLayout(self.horizontalLayout_2)
         self.name.setText(fileName)
-        self.label.setText(oscType)
+        self.label.setText(color_string)
 
         self.omega0, self.freq, self.fft_data = data
 
@@ -100,7 +228,6 @@ class FFTWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
         self.ffts = {}
-        # self.updateItems()
 
     def updateItems(self):
         def clearlayout(layout):
@@ -118,7 +245,7 @@ class FFTWindow(QtWidgets.QMainWindow):
             fft.draw()
             self.verticalLayout_2.addWidget(fft)
             
-    def clear(self):
+    def clearItems(self):
         self.ffts.clear()
 
     def addItem(self, file_name, data):
@@ -129,7 +256,6 @@ class HSAMap(QtWidgets.QWidget):
         super(HSAMap, self).__init__(parent)
         self.setupUi()
 
-        self.hsa = HeuristicSpectrumAnalyzer()
         self.fftWindow = FFTWindow(self)
 
         self.calculateButton.clicked.connect(self.on_calculateButton_clicked)
@@ -277,8 +403,8 @@ class HSAMap(QtWidgets.QWidget):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.verticalLayout_7 = QtWidgets.QVBoxLayout()
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.figure = plt.figure()
-        self.map = FigureCanvas(self.figure)
+        self.map_figure = plt.figure()
+        self.map = FigureCanvas(self.map_figure)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -299,12 +425,12 @@ class HSAMap(QtWidgets.QWidget):
         self.status = QtWidgets.QWidget(parent=self)
         self.status.setMinimumSize(QtCore.QSize(22, 22))
         self.status.setMaximumSize(QtCore.QSize(22, 22))
-        self.status.setStyleSheet("background-color: rgba(0, 0, 0, 255);")
+        self.status.setStyleSheet("background-color: #ffffff")
         self.status.setObjectName("status")
         self.horizontalLayout_13.addWidget(self.status)
         self.horizontalLayout_12.addLayout(self.horizontalLayout_13)
         self.progressBar = QtWidgets.QProgressBar(parent=self)
-        self.progressBar.setProperty("value", 24)
+        self.progressBar.setProperty("value", 0)
         self.progressBar.setTextVisible(False)
         self.progressBar.setObjectName("progressBar")
         self.horizontalLayout_12.addWidget(self.progressBar)
@@ -343,59 +469,71 @@ class HSAMap(QtWidgets.QWidget):
         self.fftWindow.updateItems()
         self.fftWindow.show()
     
-    def on_calculateButton_clicked(self):
-        file_names = Helper.get_file_names()
+    @QtCore.pyqtSlot(list)
+    def on_map_redraw(self, values):
+        file_names = list(map(lambda x: x[0], values))
 
         omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
         a0_1 = sorted(list(set([Helper.get_a0_1(file_name) for file_name in file_names])))
 
-        values = [[0] * len(a0_1) for _ in range(len(omega0))]
-        self.fftWindow.clear()
-
-        start_time = 1700.0
-        omega = 20.3
-        max_omega = omega * 2.1
-        time_step = 0.015625
-
-        for file_name in file_names:
-            omega0_value = Helper.get_omega0(file_name)
-            a0_1_value = Helper.get_a0_1(file_name)
-
-            data = np.loadtxt(file_name)
-            t, w = data[:, 0], data[:, 1]
-
-            self.hsa.set_data(t, w, start_time)
-            oscillation_type = self.hsa.evaluate(max_omega, time_step)
-
-            i = omega0.index(omega0_value)
-            j = a0_1.index(a0_1_value)
-            
-            values[j][i] = oscillation_type
-
-            fft = self.hsa.result[:]
-            half = len(fft)
-            nyquist = 1.0 / (2 * time_step)
-            freq = 2.0 * np.pi * nyquist * (np.linspace(1, half, half)) / half
-            self.fftWindow.addItem(file_name, (oscillation_type, (omega, freq, fft)))
-
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["hsa_map"]
 
-        colors = [
-            color_theme["CHAOS"], 
-            color_theme["FAKE"],
-            color_theme["UNDEF"],
-            color_theme["SP_IND_FREQ"],
-            color_theme["IND_FREQ"],
-            color_theme["HARMONIC"],
-        ]
+        color_labels = list(color_theme.keys())
+        color_values, color_hexes = zip(*list(map(lambda x: (x["value"], x["color"]), color_theme.values())))
 
-        cmap = cl.ListedColormap(colors, len(colors))
+        vmin = min(color_values) - 0.5 # left bound
+        vmax = max(color_values) + 0.5 # right bound
 
-        self.figure.clear()
-        map_ax = self.figure.add_subplot(111)
+        cmap = cl.ListedColormap(color_hexes)
+
+        transposed_values = np.array(
+            values, np.dtype([("file_name", "O"), ("OscType", np.int32), ("omega", np.float32), ("freq", np.ndarray), ("fft", np.ndarray)])
+        ).reshape((len(omega0), len(a0_1))).T.reshape(-1)
+
+        self.fftWindow.clearItems()
+
+        for value in transposed_values:
+            file_name, oscillation_type, omega, freq, fft = value
+            self.fftWindow.addItem(file_name, (oscillation_type, (omega, freq, fft)))
+
+        map_values = np.array([value[1] for value in values]).reshape((len(omega0), len(a0_1))).T
+
+        self.map_figure.clear()
+        map_ax = self.map_figure.add_subplot(111)
         map_ax.set_xticks(list(range(len(omega0))), labels = omega0)
         map_ax.set_yticks(list(range(len(a0_1))), labels = a0_1)
-        im = map_ax.imshow(values, cmap = cmap, vmin = -5.5, vmax=0.5, origin='lower')
-        self.figure.colorbar(im)
+        im = map_ax.imshow(map_values, cmap = cmap, vmin = vmin, vmax = vmax, origin='lower')
+        cbar = self.map_figure.colorbar(im)
+        ticks_loc = cbar.ax.get_yticks().tolist()
+        cbar.ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+        cbar.ax.set_yticklabels([''] + color_labels + [''])
         self.map.draw()
+
+    def on_calculateButton_clicked(self):
+        self.worker_thread = QtCore.QThread()
+        self.worker = Worker(init_value = 1, target = handler, args = (Helper.get_file_names(),))
+        self.worker.moveToThread(self.worker_thread)
+        self.worker_thread.started.connect(self.worker.run)
+        self.worker.started.connect(self.on_worker_started)
+        self.worker.finished.connect(self.on_worker_finished)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
+        self.worker.progressChanged.connect(self.progressBar.setValue)
+        self.worker_thread.start()
+
+    @QtCore.pyqtSlot()
+    def on_worker_started(self):
+        self.progressBar.setValue(0)
+        self.status.setStyleSheet(f"background-color: {INPROGRESS_COLOR}")
+        self.showButton.setDisabled(True)
+        self.calculateButton.setDisabled(True)
+
+    @QtCore.pyqtSlot(list)
+    def on_worker_finished(self, result):
+        self.worker_thread.quit()
+        self.on_map_redraw(result)
+
+        self.status.setStyleSheet(f"background-color: {RESULT_COLOR}")
+        self.showButton.setDisabled(False)
+        self.calculateButton.setDisabled(False)

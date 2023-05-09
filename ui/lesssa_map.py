@@ -3,17 +3,35 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import matplotlib.colors as cl
+import matplotlib.ticker as mticker
 
 from utilities.helper import Helper
 from utilities.lesssa import LESSSA
 
+import os
 import numpy as np
 from tqdm import tqdm
-import os
 from functools import reduce
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing
+
+def handler(file_name):
+    start_time = 1700.0
+    end_time = 1710.0
+
+    data = np.loadtxt(file_name)
+    t, w = data[:, 0], data[:, 1]
+
+    lesssa = LESSSA(4, 4, 0, 0, 1.2, 30)
+
+    lesssa.set_data(t, w, start_time, end_time)
+    sp_type, sp_exps = lesssa.evaluate()
+
+    return file_name, sp_type, sp_exps
+
 
 class ResultItem(QtWidgets.QWidget):
-    def __init__(self, fileName, sp_type, sp_coefs, parent = None):
+    def __init__(self, fileName, spType, sp_coefs, parent = None):
         super(ResultItem, self).__init__(parent)
 
         self.setObjectName("ResultItem")
@@ -44,12 +62,18 @@ class ResultItem(QtWidgets.QWidget):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.filename.setText(fileName)
         self.les.setText(reduce(lambda acc, cur: acc + str(cur) + "\n", sp_coefs, ""))
+
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["lesssa_map"]
-        _sp_type = str(sp_type)
-        color = color_theme[_sp_type]
+
+        color_values, color_hexes = zip(*list(map(lambda x: (x["value"], x["color"]), color_theme.values())))
+        colors = dict(zip(color_values, color_hexes))
+        color = colors[spType]
+        color_key_mapping = dict(zip(color_values, list(color_theme.keys())))
+        color_string = color_key_mapping[spType]
+
         self.type.setStyleSheet(f"background-color: {color}")
-        self.name.setText(_sp_type)
+        self.name.setText(color_string)
 
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -320,7 +344,7 @@ class LESSSAMap(QtWidgets.QWidget):
         self.status = QtWidgets.QWidget(parent=self)
         self.status.setMinimumSize(QtCore.QSize(22, 22))
         self.status.setMaximumSize(QtCore.QSize(22, 22))
-        self.status.setStyleSheet("background-color: rgba(0, 0, 0, 255);")
+        self.status.setStyleSheet("background-color: #ffffff")
         self.status.setObjectName("status")
         self.horizontalLayout_13.addWidget(self.status)
         self.horizontalLayout_12.addLayout(self.horizontalLayout_13)
@@ -339,7 +363,6 @@ class LESSSAMap(QtWidgets.QWidget):
         self.verticalLayout.setStretch(1, 1)
         self.horizontalLayout.addLayout(self.verticalLayout)
 
-        self.lesssa = LESSSA(4, 4, 0, 0, 1.2, 30)
         self.resultWindow = ResultWindow(self)
 
         self.retranslateUi()
@@ -376,64 +399,58 @@ class LESSSAMap(QtWidgets.QWidget):
 
     def on_calculateButton_clicked(self):
         file_names = Helper.get_file_names('.')
+        n_files = len(file_names)
 
         omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
         a0_1 = sorted(list(set([Helper.get_a0_1(file_name) for file_name in file_names])))
 
-        values = [[0] * len(a0_1) for _ in range(len(omega0))]
-        self.resultWindow.clearItems()
+        num_cores = multiprocessing.cpu_count()
+        values = [-1] * len(file_names)
 
-        start_time = 1700.0
-        end_time = 1701.0
+        pbar = tqdm(total=n_files)
 
-        for file_name in tqdm(file_names):
-            omega0_value = Helper.get_omega0(file_name)
-            a0_1_value = Helper.get_a0_1(file_name)
+        with ProcessPoolExecutor(max_workers=num_cores) as executor:
+            results = []
 
-            data = np.loadtxt(file_name)
-            t, w = data[:, 0], data[:, 1]
+            for file_name in file_names:
+                future = executor.submit(handler, file_name)
+                results.append(future)
 
-            la = self.lesssa
-
-            la.set_data(t, w, start_time, end_time)
-            sp_type, sp_exps = la.evaluate()
-
-            i = omega0.index(omega0_value)
-            j = a0_1.index(a0_1_value)
-
-            values[j][i] = sp_type
-
-            self.resultWindow.addItem(file_name, (sp_type, sp_exps))
+            for idx, future in enumerate(results):
+                result = future.result()
+                values[idx] = result
+                pbar.update()
 
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["lesssa_map"]
 
-        colors = [
-            color_theme["0"], 
-            color_theme["1"],
-            color_theme["2"],
-            color_theme["3"],
-            color_theme["4"],
-            color_theme["5"],
-        ]
+        color_labels = list(color_theme.keys())
+        color_values, color_hexes = zip(*list(map(lambda x: (x["value"], x["color"]), color_theme.values())))
 
-        cmap = cl.ListedColormap(colors, len(colors))
+        vmin = min(color_values) - 0.5 # left bound
+        vmax = max(color_values) + 0.5 # right bound
+
+        cmap = cl.ListedColormap(color_hexes)
+
+        transposed_values = np.array(
+            values, np.dtype([('file_name', 'O'), ('sp_type', np.int32), ('sp_exps', np.ndarray)])
+        ).reshape((len(omega0), len(a0_1))).T.reshape(-1)
+
+        self.resultWindow.clearItems()
+
+        for value in transposed_values:
+            file_name, sp_type, sp_exps = value
+            self.resultWindow.addItem(file_name, (sp_type, sp_exps))
+
+        map_values = np.array([value[1] for value in values]).reshape((len(omega0), len(a0_1))).T
 
         self.map_figure.clear()
         map_ax = self.map_figure.add_subplot(111)
         map_ax.set_xticks(list(range(len(omega0))), labels = omega0)
         map_ax.set_yticks(list(range(len(a0_1))), labels = a0_1)
-        im = map_ax.imshow(values, cmap = cmap, vmin = -0.5, vmax=5.5, origin='lower')
-        self.map_figure.colorbar(im)
+        im = map_ax.imshow(map_values, cmap = cmap, vmin = vmin, vmax = vmax, origin='lower')
+        cbar = self.map_figure.colorbar(im)
+        ticks_loc = cbar.ax.get_yticks().tolist()
+        cbar.ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+        cbar.ax.set_yticklabels([''] + color_labels + [''])
         self.map.draw()
-
-
-def main():
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    main = LESSSAMap()
-    main.show()
-    sys.exit(app.exec())
- 
-if __name__ == '__main__':
-    main()

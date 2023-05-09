@@ -2,30 +2,13 @@ import os
 import numpy as np
 
 
-class osc_type:
-    CHAOS       = -5
-    FAKE        = -4
-    UNDEF       = -3
-    SP_IND_FREQ = -2
-    IND_FREQ    = -1
-    HARMONIC    =  0
-
-    @staticmethod
-    def types() -> dict:
-        return {
-            osc_type.CHAOS       : 'CHAOS',
-            osc_type.FAKE        : 'FAKE',
-            osc_type.UNDEF       : 'UNDEF',
-            osc_type.SP_IND_FREQ : 'SP_IND_FREQ',
-            osc_type.IND_FREQ    : 'IND_FREQ',
-            osc_type.HARMONIC    : 'HARMONIC',
-        }
-    
-
-    @staticmethod
-    def as_str(t):
-        types = osc_type.types()
-        return types.get(t, None)
+class OscType:
+    CHAOS       = -5 # хаос
+    FAKE        = -4 # затухающии колебания
+    UNDEF       = -3 # undef
+    SP_IND_FREQ = -2 # суперпозиция независимых частот
+    IND_FREQ    = -1 # 2 независимые частоты
+    HARMONIC    =  0 # гармоники
 
 
 class HeuristicSpectrumAnalyzer:
@@ -36,23 +19,33 @@ class HeuristicSpectrumAnalyzer:
         pass
 
 
-    def set_data(self, time: list, values, start_time = 0.0):
+    def set_data(self, time, values, start_time = -1, end_time = -1):
         assert(len(time) == len(values))
 
         def closest_power_of_two(n):
             n = int(np.log2(n))
             return 2 ** n
 
-        index = next(i for i, t in enumerate(time) if t >= start_time)
+        start_time = time[0] if start_time == -1 else start_time
+        end_time = time[-1] if end_time == -1 else end_time
 
-        self.time = time[index:]
-        self.values = values[index:]
+        start_time = next(t for t in time if t >= start_time)
+        end_time = next(t for t in reversed(time) if t <= end_time)
 
-        time_len = len(self.time)
+        start_index = np.where(time == start_time)[0][0]
+        end_index = np.where(time == end_time)[0][0]
+
+        if start_index >= end_index:
+            raise Exception("start_time cannot be greater than end_time.")
+
+        time = time[start_index:end_index]
+        values = values[start_index:end_index]
+
+        time_len = len(time)
         n = closest_power_of_two(time_len)
 
-        self.time = self.time[:n]
-        self.values = self.values[:n]
+        self.time = time[:n]
+        self.values = values[:n]
     
 
     def get_interval_type(self, norm: list, n: int, d_omega: float) -> int:
@@ -87,7 +80,7 @@ class HeuristicSpectrumAnalyzer:
                 if (bif_pos < n):
                     current_type = simple_nums[i]
                 else: 
-                    current_type = osc_type.HARMONIC
+                    current_type = OscType.HARMONIC
                 break
         
         if(current_type == 0):
@@ -96,13 +89,13 @@ class HeuristicSpectrumAnalyzer:
                     break
             if(i != n):
                 if(peak_test(n - i - 1)):
-                    current_type = osc_type.SP_IND_FREQ
+                    current_type = OscType.SP_IND_FREQ
                 else:
                     div: float =  float(n) / i
                     if (np.abs(div - int(div) - 0.5) < 0.5 - HeuristicSpectrumAnalyzer.ANAL_EPS):
-                        current_type = osc_type.IND_FREQ
+                        current_type = OscType.IND_FREQ
                     else:
-                        current_type = osc_type.UNDEF
+                        current_type = OscType.UNDEF
         else:
             next_type: int = self.get_interval_type(norm, bif_pos, d_omega)
 
@@ -131,7 +124,7 @@ class HeuristicSpectrumAnalyzer:
                 max = data[i]
         
         if (max <= -7):
-            return osc_type.FAKE
+            return OscType.FAKE
 
         max -= min
 
@@ -152,7 +145,7 @@ class HeuristicSpectrumAnalyzer:
                 peak_number += 1
 
         if (peak_number > n // 40 + 1):
-            return osc_type.CHAOS; 
+            return OscType.CHAOS; 
 
         for i in range(0, n):
             if (norm[i] > 0.99):
@@ -169,7 +162,7 @@ class HeuristicSpectrumAnalyzer:
 
         for i in range(0, n):
             if np.isnan(self.values[i]):
-                return osc_type.UNDEF
+                return OscType.UNDEF
         
         self.do_fft()
 
@@ -187,21 +180,3 @@ class HeuristicSpectrumAnalyzer:
         fft = fft[1:]
 
         self.result = np.log(np.abs(fft[:half]))
-
-
-if __name__ == '__main__':
-    hsa = HeuristicSpectrumAnalyzer()
-
-    for file in os.scandir('txt'):
-        data = np.loadtxt(file.path)
-        t, w = data[:, 0], data[:, 1]
-
-        start_time = 1000.0
-        omega0 = 20.3
-        max_omega = omega0 * 2.1
-        time_step = 0.015625
-
-        hsa.set_data(t, w, start_time)
-        oscillation_type = hsa.evaluate(max_omega, time_step)
-
-        print(f'oscillation_type: {osc_type.as_str(oscillation_type)}')

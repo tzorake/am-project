@@ -214,7 +214,7 @@ class Settings(QtWidgets.QMainWindow):
         self.status = QtWidgets.QWidget(parent=self.centralwidget)
         self.status.setMinimumSize(QtCore.QSize(22, 22))
         self.status.setMaximumSize(QtCore.QSize(22, 22))
-        self.status.setStyleSheet("background-color: rgba(0, 0, 0, 255);")
+        self.status.setStyleSheet("background-color: #ffffff")
         self.status.setObjectName("status")
         self.horizontalLayout_13.addWidget(self.status)
         self.horizontalLayout_12.addLayout(self.horizontalLayout_13)
@@ -285,46 +285,47 @@ class Settings(QtWidgets.QMainWindow):
         def strip(s):
             return s[1:-1] if len(s) > 2 else ""
 
-        matches = re.findall(param, pattern)
-        pattern_with_repl = pattern[:]
+        if (len(pattern) != 0):
+            matches = re.findall(param, pattern)
+            pattern_with_repl = pattern[:]
 
-        for match in matches:
-            striped_match = strip(match)
+            for match in matches:
+                striped_match = strip(match)
 
-            equal = get_equal(striped_match)
-            dec_point = get_dec_point(striped_match)
+                equal = get_equal(striped_match)
+                dec_point = get_dec_point(striped_match)
 
-            has_equal = False
-            has_dec_point = False
+                has_equal = False
+                has_dec_point = False
 
-            if len(equal) > 0:
-                has_equal = True
-            
-            if len(dec_point) > 0:
-                has_dec_point = True
+                if len(equal) > 0:
+                    has_equal = True
+                
+                if len(dec_point) > 0:
+                    has_dec_point = True
 
-            offset = (1 if has_equal else 0) + (1 if has_dec_point else 0)
-            symbol = striped_match[:-offset] if offset > 0 else striped_match
-            replacement = f"({symbol}{equal}[+-]?(?:[0-9]*[{dec_point}])?[0-9]+)"
-            pattern_with_repl = pattern_with_repl.replace(match, replacement)
-            
-        print(pattern_with_repl)
+                offset = (1 if has_equal else 0) + (1 if has_dec_point else 0)
+                symbol = striped_match[:-offset] if offset > 0 else striped_match
+                replacement = f"({symbol}{equal}[+-]?(?:[0-9]*[{dec_point}])?[0-9]+)"
+                pattern_with_repl = pattern_with_repl.replace(match, replacement)
+                
+            print(pattern_with_repl)
 
-        if os.path.exists(path):
-            files = os.listdir(path)
+            if os.path.exists(path):
+                files = os.listdir(path)
 
-            count = 0
+                count = 0
 
-            for file in files:
-                if os.path.isfile(os.path.join(path, file)):
-                    matches = re.findall(pattern_with_repl, file)
-                    print(matches)
+                for file in files:
+                    if os.path.isfile(os.path.join(path, file)):
+                        matches = re.findall(pattern_with_repl, file)
+                        print(matches)
 
-                    if len(matches) == 1 and len(matches[0]) == 2:
-                        count += 1
-            
-            self.label_9.setText(f"Найдено: {count}")
-            self.label_9.setVisible(True)
+                        if len(matches) == 1 and len(matches[0]) == 2:
+                            count += 1
+                
+                self.label_9.setText(f"Найдено: {count}")
+                self.label_9.setVisible(True)
 
 
     def enableLabels(self):

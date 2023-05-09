@@ -1,24 +1,64 @@
 {
-    "active_theme": "myset",
+    "active_theme": "default",
     "color_themes": {
         "hsa_map": {
-            "myset": { 
-                "CHAOS":       "#0000FF",
-                "FAKE":        "#00FF00",
-                "UNDEF":       "#00FFFF",
-                "SP_IND_FREQ": "#FF0000",
-                "IND_FREQ":    "#FF00FF",
-                "HARMONIC":    "#FFFF00"
+            "default": { 
+                "CHAOS":       {
+                    "value": -5,
+                    "color": "#0000FF"
+                },
+                "FAKE":        {
+                    "value": -4,
+                    "color": "#00FF00"
+                },
+                "UNDEF":       {
+                    "value": -3,
+                    "color": "#00FFFF"
+                },
+                "SP_IND_FREQ": {
+                    "value": -2,
+                    "color": "#FF0000"
+                },
+                "IND_FREQ":    {
+                    "value": -1,
+                    "color": "#FF00FF"
+                },
+                "HARMONIC":    {
+                    "value":  0,
+                    "color": "#FFFF00"
+                },
+                "MISSING":     {
+                    "value":  1,
+                    "color": "#000000"
+                }
             }
         },
         "lesssa_map": {
-            "myset": {
-                "0": "#0000FF",
-                "1": "#00FF00",
-                "2": "#00FFFF",
-                "3": "#FF0000",
-                "4": "#FF00FF",
-                "5": "#FFFF00"
+            "default": {
+                "MISSING":  {
+                    "value": -1,
+                    "color": "#000000"
+                },
+                "D_CHAOS":  {
+                    "value": 0,
+                    "color": "#0000FF"
+                },
+                "HH_CHAOS": {
+                    "value": 1,
+                    "color": "#00FF00"
+                },
+                "H_CHAOS":  {
+                    "value": 2,
+                    "color": "#00FFFF"
+                },
+                "CHAOS":    {
+                    "value": 3,
+                    "color": "#FF0000"
+                },
+                "HARMONIC": {
+                    "value": 4,
+                    "color": "#FF00FF"
+                }
             }
         }
     }
