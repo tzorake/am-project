@@ -1,28 +1,33 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
+import os
+import numpy as np
+
+from functools import reduce
+
 import matplotlib.colors as cl
 import matplotlib.ticker as mticker
+
+from ui.common_map_interface import CommonMapInterface
 
 from utilities.helper import Helper
 from utilities.lesssa import LESSSA
 
-import os
-import numpy as np
-from tqdm import tqdm
-from functools import reduce
-from concurrent.futures import ProcessPoolExecutor
-import multiprocessing
 
 def handler(file_name):
     start_time = 1700.0
     end_time = 1710.0
+    e_dim = 4
+    tau = 4
+    iterations = 0
+    eps_min = 0
+    eps_step = 1.2
+    min_neighbors = 30
 
     data = np.loadtxt(file_name)
     t, w = data[:, 0], data[:, 1]
 
-    lesssa = LESSSA(4, 4, 0, 0, 1.2, 30)
+    lesssa = LESSSA(e_dim, tau, iterations, eps_min, eps_step, min_neighbors)
 
     lesssa.set_data(t, w, start_time, end_time)
     sp_type, sp_exps = lesssa.evaluate()
@@ -30,11 +35,11 @@ def handler(file_name):
     return file_name, sp_type, sp_exps
 
 
-class ResultItem(QtWidgets.QWidget):
+class LESItem(QtWidgets.QWidget):
     def __init__(self, fileName, spType, sp_coefs, parent = None):
-        super(ResultItem, self).__init__(parent)
+        super(LESItem, self).__init__(parent)
 
-        self.setObjectName("ResultItem")
+        self.setObjectName("LESItem")
         self.resize(400, 168)
         self.setMinimumSize(QtCore.QSize(400, 0))
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
@@ -83,9 +88,9 @@ class ResultItem(QtWidgets.QWidget):
         self.setWindowTitle(_translate("ResultItem", "ResultItem"))
 
 
-class ResultWindow(QtWidgets.QMainWindow):
+class LESWindow(QtWidgets.QMainWindow):
     def __init__(self, parent = None):
-        super(ResultWindow, self).__init__(parent)
+        super(LESWindow, self).__init__(parent)
 
         self.centralwidget = QtWidgets.QWidget()
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -108,7 +113,6 @@ class ResultWindow(QtWidgets.QMainWindow):
         self.centralwidget.setLayout(self.horizontalLayout)
         self.setCentralWidget(self.centralwidget)
         self.elements = {}
-        self.updateItems()
 
     def updateItems(self):
         def clearlayout(layout):
@@ -121,7 +125,7 @@ class ResultWindow(QtWidgets.QMainWindow):
         clearlayout(self.verticalLayout_2)
 
         for fileName, (sp_type, sp_coefs) in self.elements.items():
-            item = ResultItem(fileName, sp_type, sp_coefs)
+            item = LESItem(fileName, sp_type, sp_coefs)
             self.verticalLayout_2.addWidget(item)
 
     def clearItems(self):
@@ -131,295 +135,193 @@ class ResultWindow(QtWidgets.QMainWindow):
         self.elements[key] = value
 
 
-class LESSSAMap(QtWidgets.QWidget):
+class LESSSTopPanel(QtWidgets.QWidget):
     def __init__(self, parent = None):
-        super(LESSSAMap, self).__init__(parent)
+        super(LESSSTopPanel, self).__init__(parent)
         self.setupUi()
 
     def setupUi(self):
-        self.setObjectName("LESSSAMap")
-        self.resize(874, 684)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.setObjectName("LESSSTopPanel")
+        self.resize(870, 138)
+        self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.parameters = QtWidgets.QGroupBox(parent=self)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.parameters.sizePolicy().hasHeightForWidth())
+        self.parameters.setSizePolicy(sizePolicy)
+        self.parameters.setObjectName("parameters")
+        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.parameters)
+        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.groupBox = QtWidgets.QGroupBox(parent=self)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
-        self.groupBox.setSizePolicy(sizePolicy)
-        self.groupBox.setObjectName("groupBox")
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.groupBox)
+        self.label = QtWidgets.QLabel(parent=self.parameters)
+        self.label.setObjectName("label")
+        self.horizontalLayout_2.addWidget(self.label)
+        self.omega0 = QtWidgets.QLineEdit(parent=self.parameters)
+        self.omega0.setMinimumSize(QtCore.QSize(100, 0))
+        self.omega0.setMaximumSize(QtCore.QSize(100, 16777215))
+        self.omega0.setObjectName("omega0")
+        self.horizontalLayout_2.addWidget(self.omega0)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_2)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self.label_3 = QtWidgets.QLabel(parent=self.groupBox)
-        self.label_3.setObjectName("label_3")
-        self.horizontalLayout_6.addWidget(self.label_3)
-        self.lineEdit = QtWidgets.QLineEdit(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit.sizePolicy().hasHeightForWidth())
-        self.lineEdit.setSizePolicy(sizePolicy)
-        self.lineEdit.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineEdit.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.lineEdit.setObjectName("lineEdit")
-        self.horizontalLayout_6.addWidget(self.lineEdit)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_6)
+        self.label_2 = QtWidgets.QLabel(parent=self.parameters)
+        self.label_2.setObjectName("label_2")
+        self.horizontalLayout_3.addWidget(self.label_2)
+        self.timeStep = QtWidgets.QLineEdit(parent=self.parameters)
+        self.timeStep.setMinimumSize(QtCore.QSize(100, 20))
+        self.timeStep.setMaximumSize(QtCore.QSize(100, 20))
+        self.timeStep.setObjectName("timeStep")
+        self.horizontalLayout_3.addWidget(self.timeStep)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.label = QtWidgets.QLabel(parent=self.groupBox)
-        self.label.setObjectName("label")
-        self.horizontalLayout_4.addWidget(self.label)
-        self.lineEdit_3 = QtWidgets.QLineEdit(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_3.sizePolicy().hasHeightForWidth())
-        self.lineEdit_3.setSizePolicy(sizePolicy)
-        self.lineEdit_3.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineEdit_3.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.lineEdit_3.setObjectName("lineEdit_3")
-        self.horizontalLayout_4.addWidget(self.lineEdit_3)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_4)
-        self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.label_2 = QtWidgets.QLabel(parent=self.groupBox)
-        self.label_2.setObjectName("label_2")
-        self.horizontalLayout_5.addWidget(self.label_2)
-        self.lineEdit_5 = QtWidgets.QLineEdit(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_5.sizePolicy().hasHeightForWidth())
-        self.lineEdit_5.setSizePolicy(sizePolicy)
-        self.lineEdit_5.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineEdit_5.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.lineEdit_5.setObjectName("lineEdit_5")
-        self.horizontalLayout_5.addWidget(self.lineEdit_5)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
-        self.horizontalLayout_3.addLayout(self.verticalLayout_2)
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_9.setObjectName("horizontalLayout_9")
-        self.label_6 = QtWidgets.QLabel(parent=self.groupBox)
-        self.label_6.setObjectName("label_6")
-        self.horizontalLayout_9.addWidget(self.label_6)
-        self.lineEdit_2 = QtWidgets.QLineEdit(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_2.sizePolicy().hasHeightForWidth())
-        self.lineEdit_2.setSizePolicy(sizePolicy)
-        self.lineEdit_2.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineEdit_2.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.horizontalLayout_9.addWidget(self.lineEdit_2)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_9)
-        self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.label_4 = QtWidgets.QLabel(parent=self.groupBox)
-        self.label_4.setObjectName("label_4")
-        self.horizontalLayout_7.addWidget(self.label_4)
-        self.lineEdit_4 = QtWidgets.QLineEdit(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_4.sizePolicy().hasHeightForWidth())
-        self.lineEdit_4.setSizePolicy(sizePolicy)
-        self.lineEdit_4.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineEdit_4.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.lineEdit_4.setObjectName("lineEdit_4")
-        self.horizontalLayout_7.addWidget(self.lineEdit_4)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_7)
-        self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        self.label_5 = QtWidgets.QLabel(parent=self.groupBox)
-        self.label_5.setObjectName("label_5")
-        self.horizontalLayout_8.addWidget(self.label_5)
-        self.lineEdit_6 = QtWidgets.QLineEdit(parent=self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_6.sizePolicy().hasHeightForWidth())
-        self.lineEdit_6.setSizePolicy(sizePolicy)
-        self.lineEdit_6.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineEdit_6.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.lineEdit_6.setObjectName("lineEdit_6")
-        self.horizontalLayout_8.addWidget(self.lineEdit_6)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_8)
-        self.horizontalLayout_3.addLayout(self.verticalLayout_3)
-        self.horizontalLayout_2.addWidget(self.groupBox)
-        self.groupBox_2 = QtWidgets.QGroupBox(parent=self)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_2.sizePolicy().hasHeightForWidth())
-        self.groupBox_2.setSizePolicy(sizePolicy)
-        self.groupBox_2.setObjectName("groupBox_2")
-        self.horizontalLayout_13 = QtWidgets.QHBoxLayout(self.groupBox_2)
-        self.horizontalLayout_13.setObjectName("horizontalLayout_13")
+        self.label_3 = QtWidgets.QLabel(parent=self.parameters)
+        self.label_3.setObjectName("label_3")
+        self.horizontalLayout_4.addWidget(self.label_3)
+        self.placeholder = QtWidgets.QLineEdit(parent=self.parameters)
+        self.placeholder.setEnabled(True)
+        self.placeholder.setMinimumSize(QtCore.QSize(100, 20))
+        self.placeholder.setMaximumSize(QtCore.QSize(100, 20))
+        self.placeholder.setFrame(True)
+        self.placeholder.setObjectName("placeholder")
+        self.horizontalLayout_4.addWidget(self.placeholder)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_4)
+        self.horizontalLayout_8.addLayout(self.verticalLayout_4)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout()
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.horizontalLayout_14 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_14.setObjectName("horizontalLayout_14")
-        self.label_7 = QtWidgets.QLabel(parent=self.groupBox_2)
+        self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_9.setObjectName("horizontalLayout_9")
+        self.label_7 = QtWidgets.QLabel(parent=self.parameters)
         self.label_7.setObjectName("label_7")
-        self.horizontalLayout_14.addWidget(self.label_7)
-        self.start = QtWidgets.QLineEdit(parent=self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.start.sizePolicy().hasHeightForWidth())
-        self.start.setSizePolicy(sizePolicy)
-        self.start.setMinimumSize(QtCore.QSize(100, 0))
-        self.start.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.start.setObjectName("start")
-        self.horizontalLayout_14.addWidget(self.start)
-        self.verticalLayout_5.addLayout(self.horizontalLayout_14)
-        self.horizontalLayout_17 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_17.setObjectName("horizontalLayout_17")
-        self.label_8 = QtWidgets.QLabel(parent=self.groupBox_2)
+        self.horizontalLayout_9.addWidget(self.label_7)
+        self.lineEdit_4 = QtWidgets.QLineEdit(parent=self.parameters)
+        self.lineEdit_4.setMinimumSize(QtCore.QSize(100, 20))
+        self.lineEdit_4.setMaximumSize(QtCore.QSize(100, 20))
+        self.lineEdit_4.setObjectName("lineEdit_4")
+        self.horizontalLayout_9.addWidget(self.lineEdit_4)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_9)
+        self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_10.setObjectName("horizontalLayout_10")
+        self.label_8 = QtWidgets.QLabel(parent=self.parameters)
         self.label_8.setObjectName("label_8")
-        self.horizontalLayout_17.addWidget(self.label_8)
-        self.end = QtWidgets.QLineEdit(parent=self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.end.sizePolicy().hasHeightForWidth())
-        self.end.setSizePolicy(sizePolicy)
-        self.end.setMinimumSize(QtCore.QSize(100, 0))
-        self.end.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.end.setObjectName("end")
-        self.horizontalLayout_17.addWidget(self.end)
-        self.verticalLayout_5.addLayout(self.horizontalLayout_17)
-        self.horizontalLayout_18 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_18.setObjectName("horizontalLayout_18")
-        self.label_9 = QtWidgets.QLabel(parent=self.groupBox_2)
+        self.horizontalLayout_10.addWidget(self.label_8)
+        self.lineEdit_5 = QtWidgets.QLineEdit(parent=self.parameters)
+        self.lineEdit_5.setMinimumSize(QtCore.QSize(100, 20))
+        self.lineEdit_5.setMaximumSize(QtCore.QSize(100, 20))
+        self.lineEdit_5.setObjectName("lineEdit_5")
+        self.horizontalLayout_10.addWidget(self.lineEdit_5)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_10)
+        self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
+        self.label_9 = QtWidgets.QLabel(parent=self.parameters)
         self.label_9.setObjectName("label_9")
-        self.horizontalLayout_18.addWidget(self.label_9)
-        self.lineEdit_9 = QtWidgets.QLineEdit(parent=self.groupBox_2)
-        self.lineEdit_9.setEnabled(False)
-        self.lineEdit_9.setMinimumSize(QtCore.QSize(100, 0))
-        self.lineEdit_9.setMaximumSize(QtCore.QSize(100, 16777215))
-        self.lineEdit_9.setAutoFillBackground(False)
-        self.lineEdit_9.setFrame(False)
-        self.lineEdit_9.setClearButtonEnabled(True)
-        self.lineEdit_9.setObjectName("lineEdit_9")
-        self.horizontalLayout_18.addWidget(self.lineEdit_9)
-        self.verticalLayout_5.addLayout(self.horizontalLayout_18)
-        self.horizontalLayout_13.addLayout(self.verticalLayout_5)
-        self.horizontalLayout_2.addWidget(self.groupBox_2)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.verticalLayout_7 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.map_figure = plt.figure()
-        self.map = FigureCanvas(self.map_figure)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.horizontalLayout_11.addWidget(self.label_9)
+        self.lineEdit_6 = QtWidgets.QLineEdit(parent=self.parameters)
+        self.lineEdit_6.setMinimumSize(QtCore.QSize(100, 20))
+        self.lineEdit_6.setMaximumSize(QtCore.QSize(100, 20))
+        self.lineEdit_6.setObjectName("lineEdit_6")
+        self.horizontalLayout_11.addWidget(self.lineEdit_6)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_11)
+        self.horizontalLayout_8.addLayout(self.verticalLayout_5)
+        self.horizontalLayout.addWidget(self.parameters)
+        self.interval = QtWidgets.QGroupBox(parent=self)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.map.sizePolicy().hasHeightForWidth())
-        self.map.setSizePolicy(sizePolicy)
-        self.map.setMinimumSize(QtCore.QSize(500, 500))
-        self.map.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.map.setObjectName("map")
-        self.verticalLayout_7.addWidget(self.map)
-        self.verticalLayout.addLayout(self.verticalLayout_7)
-        self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_12.setObjectName("horizontalLayout_12")
-        self.horizontalLayout_13 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_13.setObjectName("horizontalLayout_13")
-        self.saveButton = QtWidgets.QPushButton(parent=self)
-        self.saveButton.setObjectName("saveButton")
-        self.horizontalLayout_13.addWidget(self.saveButton)
-        self.status = QtWidgets.QWidget(parent=self)
-        self.status.setMinimumSize(QtCore.QSize(22, 22))
-        self.status.setMaximumSize(QtCore.QSize(22, 22))
-        self.status.setStyleSheet("background-color: #ffffff")
-        self.status.setObjectName("status")
-        self.horizontalLayout_13.addWidget(self.status)
-        self.horizontalLayout_12.addLayout(self.horizontalLayout_13)
-        self.progressBar = QtWidgets.QProgressBar(parent=self)
-        self.progressBar.setProperty("value", 24)
-        self.progressBar.setTextVisible(False)
-        self.progressBar.setObjectName("progressBar")
-        self.horizontalLayout_12.addWidget(self.progressBar)
-        self.showButton = QtWidgets.QPushButton(parent=self)
-        self.showButton.setObjectName("showButton")
-        self.horizontalLayout_12.addWidget(self.showButton)
-        self.calculateButton = QtWidgets.QPushButton(parent=self)
-        self.calculateButton.setObjectName("calculateButton")
-        self.horizontalLayout_12.addWidget(self.calculateButton)
-        self.verticalLayout.addLayout(self.horizontalLayout_12)
-        self.verticalLayout.setStretch(1, 1)
-        self.horizontalLayout.addLayout(self.verticalLayout)
-
-        self.resultWindow = ResultWindow(self)
+        sizePolicy.setHeightForWidth(self.interval.sizePolicy().hasHeightForWidth())
+        self.interval.setSizePolicy(sizePolicy)
+        self.interval.setObjectName("interval")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.interval)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+        self.label_4 = QtWidgets.QLabel(parent=self.interval)
+        self.label_4.setObjectName("label_4")
+        self.horizontalLayout_5.addWidget(self.label_4)
+        self.lineEdit = QtWidgets.QLineEdit(parent=self.interval)
+        self.lineEdit.setMinimumSize(QtCore.QSize(100, 20))
+        self.lineEdit.setMaximumSize(QtCore.QSize(100, 20))
+        self.lineEdit.setObjectName("lineEdit")
+        self.horizontalLayout_5.addWidget(self.lineEdit)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_5)
+        self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.label_5 = QtWidgets.QLabel(parent=self.interval)
+        self.label_5.setObjectName("label_5")
+        self.horizontalLayout_6.addWidget(self.label_5)
+        self.lineEdit_2 = QtWidgets.QLineEdit(parent=self.interval)
+        self.lineEdit_2.setMinimumSize(QtCore.QSize(100, 20))
+        self.lineEdit_2.setMaximumSize(QtCore.QSize(100, 20))
+        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.horizontalLayout_6.addWidget(self.lineEdit_2)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_6)
+        self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
+        self.label_6 = QtWidgets.QLabel(parent=self.interval)
+        self.label_6.setText("")
+        self.label_6.setObjectName("label_6")
+        self.horizontalLayout_7.addWidget(self.label_6)
+        self.lineEdit_3 = QtWidgets.QLineEdit(parent=self.interval)
+        self.lineEdit_3.setEnabled(False)
+        self.lineEdit_3.setMinimumSize(QtCore.QSize(100, 20))
+        self.lineEdit_3.setMaximumSize(QtCore.QSize(100, 20))
+        self.lineEdit_3.setFrame(False)
+        self.lineEdit_3.setObjectName("lineEdit_3")
+        self.horizontalLayout_7.addWidget(self.lineEdit_3)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_7)
+        self.horizontalLayout.addWidget(self.interval)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.verticalLayout.addLayout(self.horizontalLayout)
 
         self.retranslateUi()
-        self.calculateButton.clicked.connect(self.on_calculateButton_clicked)
-        self.showButton.clicked.connect(self.on_showButton_clicked)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("LESSSAMap", "LESSSAMap"))
-        self.groupBox.setTitle(_translate("LESSSAMap", "Параметры"))
-        self.label_3.setText(_translate("LESSSAMap", "Размер встраивания"))
-        self.label.setText(_translate("LESSSAMap", "Задержка восстановления"))
-        self.label_2.setText(_translate("LESSSAMap", "Количество итераций"))
-        self.label_6.setText(_translate("LESSSAMap", "Начальный размер окрестности"))
-        self.label_4.setText(_translate("LESSSAMap", "Коэффициент увеличения окрестности"))
-        self.label_5.setText(_translate("LESSSAMap", "Размер окрестности"))
-        self.groupBox_2.setTitle(_translate("LESSSAMap", "Интервал для расчетов"))
-        self.label_7.setText(_translate("LESSSAMap", "Начало интервала"))
-        self.label_8.setText(_translate("LESSSAMap", "Конец интервала"))
-        self.label_9.setText(_translate("LESSSAMap", " "))
-        self.saveButton.setText(_translate("LESSSAMap", "Сохранить"))
-        self.calculateButton.setText(_translate("LESSSAMap", "Вычислить"))
-        self.showButton.setText(_translate("LESSSAMap", "Просмотр"))
+        self.setWindowTitle(_translate("LESSSTopPanel", "LESSSTopPanel"))
+        self.parameters.setTitle(_translate("LESSSTopPanel", "Параметры"))
+        self.label.setText(_translate("LESSSTopPanel", "Задержка восстановления"))
+        self.label_2.setText(_translate("LESSSTopPanel", "Количество итераций"))
+        self.label_3.setText(_translate("LESSSTopPanel", "Размер встраивания"))
+        self.label_7.setText(_translate("LESSSTopPanel", "Коэффициент увеличения окрестности"))
+        self.label_8.setText(_translate("LESSSTopPanel", "Размер окрестности"))
+        self.label_9.setText(_translate("LESSSTopPanel", "Начальный размер окрестности"))
+        self.interval.setTitle(_translate("LESSSTopPanel", "Интервал для расчетов"))
+        self.label_4.setText(_translate("LESSSTopPanel", "Начало интервала"))
+        self.label_5.setText(_translate("LESSSTopPanel", "Конец интервала"))
 
-    def resizeEvent(self, event):
-        w = self.map.size().height()
-        self.map.setMaximumWidth(w)
 
-        QtWidgets.QWidget.resizeEvent(self, event)
+class LESSSAMap(CommonMapInterface):
+    def __init__(self, parent = None):
+        super(LESSSAMap, self).__init__(LESSSTopPanel(), parent)
 
+        self.lesWindow = LESWindow(self)
+
+        self.showButton.clicked.connect(self.on_showButton_clicked)
+        self.calculateButton.clicked.connect(self.on_calculateButton_clicked)
+
+    @QtCore.pyqtSlot()
     def on_showButton_clicked(self):
-        self.resultWindow.updateItems()
-        self.resultWindow.show()
-
+        self.lesWindow.updateItems()
+        self.lesWindow.show()
+    
+    @QtCore.pyqtSlot()
     def on_calculateButton_clicked(self):
-        file_names = Helper.get_file_names('.')
-        n_files = len(file_names)
+        super().on_calculateButton_clicked(init_value=-1, handler=handler)
+
+    @QtCore.pyqtSlot(list)
+    def on_map_redraw(self, values):
+        file_names = list(map(lambda x: x[0], values))
 
         omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
         a0_1 = sorted(list(set([Helper.get_a0_1(file_name) for file_name in file_names])))
-
-        num_cores = multiprocessing.cpu_count()
-        values = [-1] * len(file_names)
-
-        pbar = tqdm(total=n_files)
-
-        with ProcessPoolExecutor(max_workers=num_cores) as executor:
-            results = []
-
-            for file_name in file_names:
-                future = executor.submit(handler, file_name)
-                results.append(future)
-
-            for idx, future in enumerate(results):
-                result = future.result()
-                values[idx] = result
-                pbar.update()
 
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["lesssa_map"]
@@ -436,11 +338,11 @@ class LESSSAMap(QtWidgets.QWidget):
             values, np.dtype([('file_name', 'O'), ('sp_type', np.int32), ('sp_exps', np.ndarray)])
         ).reshape((len(omega0), len(a0_1))).T.reshape(-1)
 
-        self.resultWindow.clearItems()
+        self.lesWindow.clearItems()
 
         for value in transposed_values:
             file_name, sp_type, sp_exps = value
-            self.resultWindow.addItem(file_name, (sp_type, sp_exps))
+            self.lesWindow.addItem(file_name, (sp_type, sp_exps))
 
         map_values = np.array([value[1] for value in values]).reshape((len(omega0), len(a0_1))).T
 
