@@ -65,7 +65,12 @@ class Worker(QtCore.QObject):
 class CommonMapInterface(QtWidgets.QWidget):
     def __init__(self, topPanel = None, parent = None):
         super(CommonMapInterface, self).__init__(parent)
+
+        self._topPanel = topPanel
         self.setupUi(topPanel)
+
+    def topPanel(self):
+        return self._topPanel
 
     def setupUi(self, topPanel):
         self.setObjectName("CommonMapInterface")
@@ -92,7 +97,7 @@ class CommonMapInterface(QtWidgets.QWidget):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.map.sizePolicy().hasHeightForWidth())
         self.map.setSizePolicy(sizePolicy)
-        self.map.setMinimumSize(QtCore.QSize(500, 500))
+        self.map.setMinimumSize(QtCore.QSize(600, 600))
         self.map.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.map.setObjectName("map")
         self.verticalLayout_7.addWidget(self.map)

@@ -3,6 +3,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 import os
 import numpy as np
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as cl
 import matplotlib.ticker as mticker
@@ -179,21 +180,27 @@ class HSATopPanel(QtWidgets.QWidget):
         self.label = QtWidgets.QLabel(parent=self.parameters)
         self.label.setObjectName("label")
         self.horizontalLayout_2.addWidget(self.label)
-        self.omega0 = QtWidgets.QLineEdit(parent=self.parameters)
-        self.omega0.setMinimumSize(QtCore.QSize(100, 20))
-        self.omega0.setMaximumSize(QtCore.QSize(100, 20))
-        self.omega0.setObjectName("omega0")
-        self.horizontalLayout_2.addWidget(self.omega0)
+        validator = QtGui.QDoubleValidator()
+        validator.setLocale(QtCore.QLocale(QtCore.QLocale.Language.English, QtCore.QLocale.Country.UnitedStates))
+        self.omega = QtWidgets.QLineEdit(parent=self.parameters)
+        self.omega.setMinimumSize(QtCore.QSize(100, 20))
+        self.omega.setMaximumSize(QtCore.QSize(100, 20))
+        self.omega.setObjectName("omega")
+        self.omega.setValidator(validator)
+        self.horizontalLayout_2.addWidget(self.omega)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_2 = QtWidgets.QLabel(parent=self.parameters)
         self.label_2.setObjectName("label_2")
         self.horizontalLayout_3.addWidget(self.label_2)
+        validator = QtGui.QDoubleValidator()
+        validator.setLocale(QtCore.QLocale(QtCore.QLocale.Language.English, QtCore.QLocale.Country.UnitedStates))
         self.timeStep = QtWidgets.QLineEdit(parent=self.parameters)
         self.timeStep.setMinimumSize(QtCore.QSize(100, 20))
         self.timeStep.setMaximumSize(QtCore.QSize(100, 20))
         self.timeStep.setObjectName("timeStep")
+        self.timeStep.setValidator(validator)
         self.horizontalLayout_3.addWidget(self.timeStep)
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
@@ -225,22 +232,32 @@ class HSATopPanel(QtWidgets.QWidget):
         self.label_4 = QtWidgets.QLabel(parent=self.interval)
         self.label_4.setObjectName("label_4")
         self.horizontalLayout_5.addWidget(self.label_4)
-        self.lineEdit = QtWidgets.QLineEdit(parent=self.interval)
-        self.lineEdit.setMinimumSize(QtCore.QSize(100, 20))
-        self.lineEdit.setMaximumSize(QtCore.QSize(100, 20))
-        self.lineEdit.setObjectName("lineEdit")
-        self.horizontalLayout_5.addWidget(self.lineEdit)
+        validator = QtGui.QDoubleValidator()
+        locale = QtCore.QLocale(QtCore.QLocale.Language.English, QtCore.QLocale.Country.UnitedStates)
+        locale.setNumberOptions(QtCore.QLocale.NumberOption.RejectGroupSeparator)
+        validator.setLocale(locale)
+        self.start = QtWidgets.QLineEdit(parent=self.interval)
+        self.start.setMinimumSize(QtCore.QSize(100, 20))
+        self.start.setMaximumSize(QtCore.QSize(100, 20))
+        self.start.setObjectName("lineEdit")
+        self.start.setValidator(validator)
+        self.horizontalLayout_5.addWidget(self.start)
         self.verticalLayout_3.addLayout(self.horizontalLayout_5)
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.label_5 = QtWidgets.QLabel(parent=self.interval)
         self.label_5.setObjectName("label_5")
         self.horizontalLayout_6.addWidget(self.label_5)
-        self.lineEdit_2 = QtWidgets.QLineEdit(parent=self.interval)
-        self.lineEdit_2.setMinimumSize(QtCore.QSize(100, 20))
-        self.lineEdit_2.setMaximumSize(QtCore.QSize(100, 20))
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.horizontalLayout_6.addWidget(self.lineEdit_2)
+        validator2 = QtGui.QDoubleValidator()
+        locale = QtCore.QLocale(QtCore.QLocale.Language.English, QtCore.QLocale.Country.UnitedStates)
+        locale.setNumberOptions(QtCore.QLocale.NumberOption.RejectGroupSeparator)
+        validator2.setLocale(locale)
+        self.end = QtWidgets.QLineEdit(parent=self.interval)
+        self.end.setMinimumSize(QtCore.QSize(100, 20))
+        self.end.setMaximumSize(QtCore.QSize(100, 20))
+        self.end.setObjectName("lineEdit_2")
+        self.end.setValidator(validator2)
+        self.horizontalLayout_6.addWidget(self.end)
         self.verticalLayout_3.addLayout(self.horizontalLayout_6)
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
@@ -280,8 +297,38 @@ class HSAMap(CommonMapInterface):
 
         self.fftWindow = FFTWindow(self)
 
+        self.default_parameters = {
+            "omega": 20.3,
+            "time_step": 0.015625,
+        }
+
+        top = self.topPanel()
+        self.field_mapping = {
+            "omega": top.omega,
+            "time_step": top.timeStep,
+        }
+
+        self.on_defaultParameters_setup(self.default_parameters)
+
         self.showButton.clicked.connect(self.on_showButton_clicked)
         self.calculateButton.clicked.connect(self.on_calculateButton_clicked)
+
+    @QtCore.pyqtSlot(dict)
+    def on_defaultParameters_setup(self, params: dict):
+        for key in params.keys():
+            param = self.default_parameters[key]
+            field = self.field_mapping[key]
+            field.setText(str(param))
+
+    @QtCore.pyqtSlot(str)
+    def on_start_changed(self, x):
+        panel = self.topPanel()
+        panel.start.setText(x)
+
+    @QtCore.pyqtSlot(str)
+    def on_end_changed(self, x):
+        panel = self.topPanel()
+        panel.end.setText(x)
 
     @QtCore.pyqtSlot()
     def on_showButton_clicked(self):
@@ -294,6 +341,8 @@ class HSAMap(CommonMapInterface):
 
     @QtCore.pyqtSlot(list)
     def on_map_redraw(self, values):
+
+        print(self.topPanel().timeStep.text())
         file_names = list(map(lambda x: x[0], values))
 
         omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
@@ -323,12 +372,20 @@ class HSAMap(CommonMapInterface):
         map_values = np.array([value[1] for value in values]).reshape((len(omega0), len(a0_1))).T
 
         self.map_figure.clear()
+
         map_ax = self.map_figure.add_subplot(111)
+
         map_ax.set_xticks(list(range(len(omega0))), labels = omega0)
         map_ax.set_yticks(list(range(len(a0_1))), labels = a0_1)
+
+        # map_ax.set_xlabel(r'$y$', fontsize=18)
+        # map_ax.set_ylabel(r'$x$', fontsize=18)
+
         im = map_ax.imshow(map_values, cmap = cmap, vmin = vmin, vmax = vmax, origin='lower')
+
         cbar = self.map_figure.colorbar(im)
         ticks_loc = cbar.ax.get_yticks().tolist()
         cbar.ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
         cbar.ax.set_yticklabels([''] + color_labels + [''])
+
         self.map.draw()
