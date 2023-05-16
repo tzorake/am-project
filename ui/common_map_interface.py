@@ -33,12 +33,15 @@ class Worker(QtCore.QObject):
 
     def run(self):
         assert self.target is not None
-        assert len(self.args) == 1
+        assert len(self.args) == 2
 
         self.started.emit()
 
         file_names = self.args[0]
+        params = self.args[1]
         n_files = len(file_names)
+
+        print('Parameters: ', params)
 
         num_cores = multiprocessing.cpu_count()
         values = [self.init_value] * len(file_names)
@@ -49,7 +52,7 @@ class Worker(QtCore.QObject):
             results = []
 
             for file_name in file_names:
-                future = executor.submit(self.target, file_name)
+                future = executor.submit(self.target, file_name, params)
                 results.append(future)
 
             for idx, future in enumerate(results):
@@ -67,10 +70,29 @@ class CommonMapInterface(QtWidgets.QWidget):
         super(CommonMapInterface, self).__init__(parent)
 
         self._topPanel = topPanel
+        self._params = {}
         self.setupUi(topPanel)
 
     def topPanel(self):
         return self._topPanel
+    
+    def params(self):
+        return self._params
+    
+    def setParams(self, params):
+        self._params = params.copy()
+
+    def setParam(self, key, value):
+        self._params[key] = value
+
+    @QtCore.pyqtSlot(dict)
+    def on_parameters_update(self, params: dict):
+        self.setParams(params)
+
+        for key in self.params().keys():
+            param = params[key]
+            field = self.field_mapping[key]
+            field.setText(str(param))
 
     def setupUi(self, topPanel):
         self.setObjectName("CommonMapInterface")
@@ -155,7 +177,7 @@ class CommonMapInterface(QtWidgets.QWidget):
             raise RuntimeError("Handler function is not defined yet!")
 
         self.worker_thread = QtCore.QThread()
-        self.worker = Worker(init_value = init_value, target = handler, args = (Helper.get_file_names(),))
+        self.worker = Worker(init_value = init_value, target = handler, args = (Helper.get_file_names(), self.params()))
         self.worker.moveToThread(self.worker_thread)
         self.worker_thread.started.connect(self.worker.run)
         self.worker.started.connect(self.on_worker_started)

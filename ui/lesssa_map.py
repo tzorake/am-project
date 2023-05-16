@@ -14,15 +14,15 @@ from utilities.helper import Helper
 from utilities.lesssa import LESSSA
 
 
-def handler(file_name):
-    start_time = 1700.0
-    end_time = 1710.0
-    e_dim = 4
-    tau = 4
-    iterations = 0
-    eps_min = 0
-    eps_step = 1.2
-    min_neighbors = 30
+def handler(file_name, params):
+    start_time = params["start_time"]
+    end_time = params["end_time"]
+    e_dim = params["e_dim"]
+    tau = params["tau"]
+    iterations = params["iterations"]
+    eps_min = params["eps_min"]
+    eps_step = params["eps_step"]
+    min_neighbors = params["min_neighbors"]
 
     data = np.loadtxt(file_name)
     t, w = data[:, 0], data[:, 1]
@@ -136,6 +136,15 @@ class LESWindow(QtWidgets.QMainWindow):
 
 
 class LESSSTopPanel(QtWidgets.QWidget):
+    startChanged = QtCore.pyqtSignal(str)
+    endChanged = QtCore.pyqtSignal(str)
+    eDimChanged = QtCore.pyqtSignal(str)
+    tauChanged = QtCore.pyqtSignal(str)
+    iterationsChanged = QtCore.pyqtSignal(str)
+    epsMinChanged = QtCore.pyqtSignal(str)
+    epsStepChanged = QtCore.pyqtSignal(str)
+    minNeighborsChanged = QtCore.pyqtSignal(str)
+
     def __init__(self, parent = None):
         super(LESSSTopPanel, self).__init__(parent)
         self.setupUi()
@@ -157,9 +166,18 @@ class LESSSTopPanel(QtWidgets.QWidget):
         validator5 = QtGui.QDoubleValidator()
         validator5.setLocale(locale)
         self.epsStep.setValidator(validator5)
-        validator6 = QtGui.QDoubleValidator()
+        validator6 = QtGui.QIntValidator()
         validator6.setLocale(locale)
         self.minNeigh.setValidator(validator6)
+
+        self.start.editingFinished.connect(self.on_start_finished)
+        self.end.editingFinished.connect(self.on_end_finished)
+        self.eDim.editingFinished.connect(self.on_eDim_finished)
+        self.tau.editingFinished.connect(self.on_tau_finished)
+        self.iterations.editingFinished.connect(self.on_iterations_finished)
+        self.epsMin.editingFinished.connect(self.on_epsMin_finished)
+        self.epsStep.editingFinished.connect(self.on_epsStep_finished)
+        self.minNeigh.editingFinished.connect(self.on_minNeighbors_finished)
 
     def setupUi(self):
         self.setObjectName("LESSSTopPanel")
@@ -326,14 +344,56 @@ class LESSSTopPanel(QtWidgets.QWidget):
         self.label_4.setText(_translate("LESSSTopPanel", "Начало интервала"))
         self.label_5.setText(_translate("LESSSTopPanel", "Конец интервала"))
 
+    @QtCore.pyqtSlot()
+    def on_start_finished(self):
+        x = self.start.text()
+        self.startChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_end_finished(self):
+        x = self.end.text()
+        self.endChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_eDim_finished(self):
+        x = self.eDim.text()
+        self.eDimChanged.emit(x)
+    
+    @QtCore.pyqtSlot()
+    def on_tau_finished(self):
+        x = self.tau.text()
+        self.tauChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_iterations_finished(self):
+        x = self.iterations.text()
+        self.iterationsChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_epsMin_finished(self):
+        x = self.epsMin.text()
+        self.epsMinChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_epsStep_finished(self):
+        x = self.epsStep.text()
+        self.epsStepChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_minNeighbors_finished(self):
+        x = self.minNeigh.text()
+        self.minNeighborsChanged.emit(x)
 
 class LESSSAMap(CommonMapInterface):
     def __init__(self, parent = None):
         super(LESSSAMap, self).__init__(LESSSTopPanel(), parent)
 
         self.lesWindow = LESWindow(self)
+        top = self.topPanel()
 
         self.default_parameters = {
+            "start_time": 0.0,
+            "end_time": 0.0,
             "e_dim": 4,
             "tau": 4,
             "iterations": 0,
@@ -341,9 +401,9 @@ class LESSSAMap(CommonMapInterface):
             "eps_step": 1.2,
             "min_neighbors": 30
         }
-
-        top = self.topPanel()
         self.field_mapping = {
+            "start_time": top.start,
+            "end_time": top.end,
             "e_dim": top.eDim,
             "tau": top.tau,
             "iterations": top.iterations,
@@ -352,27 +412,63 @@ class LESSSAMap(CommonMapInterface):
             "min_neighbors": top.minNeigh
         }
 
-        self.on_defaultParameters_setup(self.default_parameters)
+        self.on_parameters_update(self.default_parameters)
+
+        top.startChanged.connect(self.on_start_update)
+        top.endChanged.connect(self.on_end_update)
+        top.eDimChanged.connect(self.on_eDim_update)
+        top.tauChanged.connect(self.on_tau_update)
+        top.iterationsChanged.connect(self.on_iterations_update)
+        top.epsMinChanged.connect(self.on_epsMin_update)
+        top.epsStepChanged.connect(self.on_epsStep_update)
+        top.minNeighborsChanged.connect(self.on_minNeighbors_update)
 
         self.showButton.clicked.connect(self.on_showButton_clicked)
         self.calculateButton.clicked.connect(self.on_calculateButton_clicked)
-
-    @QtCore.pyqtSlot(dict)
-    def on_defaultParameters_setup(self, params: dict):
-        for key in params.keys():
-            param = self.default_parameters[key]
-            field = self.field_mapping[key]
-            field.setText(str(param))
 
     @QtCore.pyqtSlot(str)
     def on_start_changed(self, x):
         panel = self.topPanel()
         panel.start.setText(x)
+        self.on_start_update(x)
 
     @QtCore.pyqtSlot(str)
     def on_end_changed(self, x):
         panel = self.topPanel()
         panel.end.setText(x)
+        self.on_end_update(x)
+
+    @QtCore.pyqtSlot(str)
+    def on_start_update(self, x):
+        self.setParam("start_time", np.double(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_end_update(self, x):
+        self.setParam("end_time", np.double(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_eDim_update(self, x):
+        self.setParam("e_dim", np.int64(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_tau_update(self, x):
+        self.setParam("tau", np.int64(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_iterations_update(self, x):
+        self.setParam("iterations", np.int64(x))
+    
+    @QtCore.pyqtSlot(str)
+    def on_epsMin_update(self, x):
+        self.setParam("eps_min", np.double(x))
+    
+    @QtCore.pyqtSlot(str)
+    def on_epsStep_update(self, x):
+        self.setParam("eps_step", np.double(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_minNeighbors_update(self, x):
+        self.setParam("min_neighbors", np.int64(x))
 
     @QtCore.pyqtSlot()
     def on_showButton_clicked(self):

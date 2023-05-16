@@ -16,12 +16,12 @@ from utilities.helper import Helper
 from utilities.hsa import HeuristicSpectrumAnalyzer
 
 
-def handler(file_name):
-    start_time = 1700.0
-    end_time = 2000.0
-    omega = 20.3
+def handler(file_name, params):
+    start_time = params["start_time"]
+    end_time = params["end_time"]
+    omega = params["omega"]
     max_omega = omega * 2.1
-    time_step = 0.015625
+    time_step = params["time_step"]
 
     data = np.loadtxt(file_name)
     t, w = data[:, 0], data[:, 1]
@@ -155,9 +155,19 @@ class FFTWindow(QtWidgets.QMainWindow):
 
 
 class HSATopPanel(QtWidgets.QWidget):
+    startChanged = QtCore.pyqtSignal(str)
+    endChanged = QtCore.pyqtSignal(str)
+    omegaChanged = QtCore.pyqtSignal(str)
+    timeStepChanged = QtCore.pyqtSignal(str)
+
     def __init__(self, parent = None):
         super(HSATopPanel, self).__init__(parent)
         self.setupUi()
+
+        self.start.editingFinished.connect(self.on_start_finished)
+        self.end.editingFinished.connect(self.on_end_finished)
+        self.omega.editingFinished.connect(self.on_omega_finished)
+        self.timeStep.editingFinished.connect(self.on_timeStep_finished)
 
     def setupUi(self):
         self.setObjectName("HSATopPanel")
@@ -290,45 +300,84 @@ class HSATopPanel(QtWidgets.QWidget):
         self.label_4.setText(_translate("HSATopPanel", "Начало интервала"))
         self.label_5.setText(_translate("HSATopPanel", "Конец интервала"))
 
+    @QtCore.pyqtSlot()
+    def on_start_finished(self):
+        x = self.start.text()
+        self.startChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_end_finished(self):
+        x = self.end.text()
+        self.endChanged.emit(x)
+
+    @QtCore.pyqtSlot()
+    def on_omega_finished(self):
+        x = self.omega.text()
+        self.omegaChanged.emit(x)
+    
+    @QtCore.pyqtSlot()
+    def on_timeStep_finished(self):
+        x = self.omega.text()
+        self.timeStepChanged.emit(x)
+
 
 class HSAMap(CommonMapInterface):
     def __init__(self, parent = None):
         super(HSAMap, self).__init__(HSATopPanel(), parent)
 
         self.fftWindow = FFTWindow(self)
+        top = self.topPanel()
 
         self.default_parameters = {
             "omega": 20.3,
             "time_step": 0.015625,
+            "start_time": 0.0,
+            "end_time": 0.0,
         }
-
-        top = self.topPanel()
         self.field_mapping = {
             "omega": top.omega,
             "time_step": top.timeStep,
+            "start_time": top.start,
+            "end_time": top.end,
         }
 
-        self.on_defaultParameters_setup(self.default_parameters)
+        self.on_parameters_update(self.default_parameters)
+
+        top.startChanged.connect(self.on_start_update)
+        top.endChanged.connect(self.on_end_update)
+        top.omegaChanged.connect(self.on_omega_update)
+        top.timeStepChanged.connect(self.on_timeStep_update)
 
         self.showButton.clicked.connect(self.on_showButton_clicked)
         self.calculateButton.clicked.connect(self.on_calculateButton_clicked)
-
-    @QtCore.pyqtSlot(dict)
-    def on_defaultParameters_setup(self, params: dict):
-        for key in params.keys():
-            param = self.default_parameters[key]
-            field = self.field_mapping[key]
-            field.setText(str(param))
 
     @QtCore.pyqtSlot(str)
     def on_start_changed(self, x):
         panel = self.topPanel()
         panel.start.setText(x)
+        self.on_start_update(x)
 
     @QtCore.pyqtSlot(str)
     def on_end_changed(self, x):
         panel = self.topPanel()
         panel.end.setText(x)
+        self.on_end_update(x)
+
+    @QtCore.pyqtSlot(str)
+    def on_start_update(self, x):
+        self.setParam("start_time", np.double(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_end_update(self, x):
+        self.setParam("end_time", np.double(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_omega_update(self, x):
+        self.setParam("omega", np.double(x))
+
+    @QtCore.pyqtSlot(str)
+    def on_timeStep_update(self, x):
+        self.setParam("time_step", np.double(x))
 
     @QtCore.pyqtSlot()
     def on_showButton_clicked(self):
@@ -341,8 +390,6 @@ class HSAMap(CommonMapInterface):
 
     @QtCore.pyqtSlot(list)
     def on_map_redraw(self, values):
-
-        print(self.topPanel().timeStep.text())
         file_names = list(map(lambda x: x[0], values))
 
         omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
