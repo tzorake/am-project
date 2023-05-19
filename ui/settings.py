@@ -293,7 +293,7 @@ class Settings(QtWidgets.QWidget):
                                 first_param = handle_param(first, equal, dec_point)
                                 second_param = handle_param(second, equal, dec_point)
 
-                                filename = os.path.join(path, file)
+                                filename = os.path.normpath(os.path.join(path, file))
 
                                 filenames[filename] = (first_param, second_param)
 

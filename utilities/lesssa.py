@@ -21,7 +21,7 @@ class LESSSA:
 
         self.data = values[start_index:end_index]
 
-    def evaluate(self):
+    def evaluate(self, gamma):
         if (self.data is None):
             raise Exception("self.data is used before initialization")
 
@@ -30,10 +30,12 @@ class LESSSA:
 
         self.lesss.calculate(self.data)
 
-        result = self.lesss.result
-        filtered = list(filter(lambda x: x < 0, result))
+        data = self.lesss.result
 
-        return len(filtered), result
+        filtered_data = np.where(np.abs(data) < gamma, 0.0, data)
+        count = list(filter(lambda x: x < 0.0, filtered_data))
+
+        return len(count), filtered_data
 
 
 if __name__ == '__main__':

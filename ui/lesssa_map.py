@@ -23,6 +23,7 @@ def handler(file_name, params):
     eps_min = params["eps_min"]
     eps_step = params["eps_step"]
     min_neighbors = params["min_neighbors"]
+    gamma = params["gamma"]
 
     data = np.loadtxt(file_name)
     t, w = data[:, 0], data[:, 1]
@@ -30,7 +31,7 @@ def handler(file_name, params):
     lesssa = LESSSA(e_dim, tau, iterations, eps_min, eps_step, min_neighbors)
 
     lesssa.set_data(t, w, start_time, end_time)
-    sp_type, sp_exps = lesssa.evaluate()
+    sp_type, sp_exps = lesssa.evaluate(gamma)
 
     return file_name, sp_type, sp_exps
 
@@ -81,7 +82,6 @@ class LESItem(QtWidgets.QWidget):
         self.name.setText(color_string)
 
         self.retranslateUi()
-        QtCore.QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -144,6 +144,7 @@ class LESSSTopPanel(QtWidgets.QWidget):
     epsMinChanged = QtCore.pyqtSignal(str)
     epsStepChanged = QtCore.pyqtSignal(str)
     minNeighborsChanged = QtCore.pyqtSignal(str)
+    gammaChanged = QtCore.pyqtSignal(str)
 
     def __init__(self, parent = None):
         super(LESSSTopPanel, self).__init__(parent)
@@ -169,6 +170,9 @@ class LESSSTopPanel(QtWidgets.QWidget):
         validator6 = QtGui.QIntValidator()
         validator6.setLocale(locale)
         self.minNeigh.setValidator(validator6)
+        validator7 = QtGui.QDoubleValidator()
+        validator7.setLocale(locale)
+        self.gamma.setValidator(validator7)
 
         self.start.editingFinished.connect(self.on_start_finished)
         self.end.editingFinished.connect(self.on_end_finished)
@@ -178,6 +182,7 @@ class LESSSTopPanel(QtWidgets.QWidget):
         self.epsMin.editingFinished.connect(self.on_epsMin_finished)
         self.epsStep.editingFinished.connect(self.on_epsStep_finished)
         self.minNeigh.editingFinished.connect(self.on_minNeighbors_finished)
+        self.gamma.editingFinished.connect(self.on_gamma_finished)
 
     def setupUi(self):
         self.setObjectName("LESSSTopPanel")
@@ -269,6 +274,46 @@ class LESSSTopPanel(QtWidgets.QWidget):
         self.horizontalLayout_11.addWidget(self.minNeigh)
         self.verticalLayout_5.addLayout(self.horizontalLayout_11)
         self.horizontalLayout_8.addLayout(self.verticalLayout_5)
+        self.verticalLayout_6 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_6.setObjectName("verticalLayout_6")
+        self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_12.setObjectName("horizontalLayout_12")
+        self.label_10 = QtWidgets.QLabel(parent=self.parameters)
+        self.label_10.setObjectName("label_10")
+        self.horizontalLayout_12.addWidget(self.label_10)
+        self.gamma = QtWidgets.QLineEdit(parent=self.parameters)
+        self.gamma.setMinimumSize(QtCore.QSize(100, 20))
+        self.gamma.setMaximumSize(QtCore.QSize(100, 20))
+        self.gamma.setObjectName("gamma")
+        self.horizontalLayout_12.addWidget(self.gamma)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_12)
+        self.horizontalLayout_13 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_13.setObjectName("horizontalLayout_13")
+        self.label_11 = QtWidgets.QLabel(parent=self.parameters)
+        self.label_11.setObjectName("label_11")
+        self.horizontalLayout_13.addWidget(self.label_11)
+        self.placeholder = QtWidgets.QLineEdit(parent=self.parameters)
+        self.placeholder.setEnabled(False)
+        self.placeholder.setMinimumSize(QtCore.QSize(100, 20))
+        self.placeholder.setMaximumSize(QtCore.QSize(100, 20))
+        self.placeholder.setFrame(False)
+        self.placeholder.setObjectName("placeholder")
+        self.horizontalLayout_13.addWidget(self.placeholder)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_13)
+        self.horizontalLayout_14 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_14.setObjectName("horizontalLayout_14")
+        self.label_12 = QtWidgets.QLabel(parent=self.parameters)
+        self.label_12.setObjectName("label_12")
+        self.horizontalLayout_14.addWidget(self.label_12)
+        self.placeholder2 = QtWidgets.QLineEdit(parent=self.parameters)
+        self.placeholder2.setEnabled(False)
+        self.placeholder2.setMinimumSize(QtCore.QSize(100, 20))
+        self.placeholder2.setMaximumSize(QtCore.QSize(100, 20))
+        self.placeholder2.setFrame(False)
+        self.placeholder2.setObjectName("placeholder2")
+        self.horizontalLayout_14.addWidget(self.placeholder2)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_14)
+        self.horizontalLayout_8.addLayout(self.verticalLayout_6)
         self.horizontalLayout.addWidget(self.parameters)
         self.interval = QtWidgets.QGroupBox(parent=self)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
@@ -340,6 +385,7 @@ class LESSSTopPanel(QtWidgets.QWidget):
         self.label_7.setText(_translate("LESSSTopPanel", "Начальный размер окрестности"))
         self.label_8.setText(_translate("LESSSTopPanel", "Коэффициент увеличения окрестности"))
         self.label_9.setText(_translate("LESSSTopPanel", "Размер окрестности"))
+        self.label_10.setText(_translate("LESSSTopPanel", "Коэффициент зануление"))
         self.interval.setTitle(_translate("LESSSTopPanel", "Интервал для расчетов"))
         self.label_4.setText(_translate("LESSSTopPanel", "Начало интервала"))
         self.label_5.setText(_translate("LESSSTopPanel", "Конец интервала"))
@@ -384,6 +430,12 @@ class LESSSTopPanel(QtWidgets.QWidget):
         x = self.minNeigh.text()
         self.minNeighborsChanged.emit(x)
 
+    @QtCore.pyqtSlot()
+    def on_gamma_finished(self):
+        print("on_gamma_finished")
+        x = self.gamma.text()
+        self.gammaChanged.emit(x)
+
 class LESSSAMap(CommonMapInterface):
     def __init__(self, parent = None):
         super(LESSSAMap, self).__init__(LESSSTopPanel(), parent)
@@ -399,7 +451,8 @@ class LESSSAMap(CommonMapInterface):
             "iterations": 0,
             "eps_min": 0,
             "eps_step": 1.2,
-            "min_neighbors": 30
+            "min_neighbors": 30,
+            "gamma": 0.001
         }
         self.field_mapping = {
             "start_time": top.start,
@@ -409,7 +462,8 @@ class LESSSAMap(CommonMapInterface):
             "iterations": top.iterations,
             "eps_min": top.epsMin,
             "eps_step": top.epsStep,
-            "min_neighbors": top.minNeigh
+            "min_neighbors": top.minNeigh,
+            "gamma": top.gamma
         }
 
         self.on_parameters_update(self.default_parameters)
@@ -422,6 +476,7 @@ class LESSSAMap(CommonMapInterface):
         top.epsMinChanged.connect(self.on_epsMin_update)
         top.epsStepChanged.connect(self.on_epsStep_update)
         top.minNeighborsChanged.connect(self.on_minNeighbors_update)
+        top.gammaChanged.connect(self.on_gamma_update)
 
         self.showButton.clicked.connect(self.on_showButton_clicked)
         self.calculateButton.clicked.connect(self.on_calculateButton_clicked)
@@ -470,6 +525,10 @@ class LESSSAMap(CommonMapInterface):
     def on_minNeighbors_update(self, x):
         self.setParam("min_neighbors", np.int64(x))
 
+    @QtCore.pyqtSlot(str)
+    def on_gamma_update(self, x):
+        self.setParam("gamma", np.double(x))
+
     @QtCore.pyqtSlot()
     def on_showButton_clicked(self):
         self.lesWindow.updateItems()
@@ -481,10 +540,12 @@ class LESSSAMap(CommonMapInterface):
 
     @QtCore.pyqtSlot(list)
     def on_map_redraw(self, values):
-        file_names = list(map(lambda x: x[0], values))
+        file_names = self.filenames()
+        file_name_list = list(file_names.keys())
 
-        omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
-        a0_1 = sorted(list(set([Helper.get_a0_1(file_name) for file_name in file_names])))
+        first_param, second_param = zip(*list(map(lambda key: file_names[key], file_name_list)))
+        first_param, second_param = sorted(list(set(first_param))), sorted(list(set(second_param)))
+        first_param, second_param = list(map(lambda x: x[1], first_param)), list(map(lambda x: x[1], second_param))
 
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["lesssa_map"]
@@ -499,7 +560,7 @@ class LESSSAMap(CommonMapInterface):
 
         transposed_values = np.array(
             values, np.dtype([('file_name', 'O'), ('sp_type', np.int32), ('sp_exps', np.ndarray)])
-        ).reshape((len(omega0), len(a0_1))).T.reshape(-1)
+        ).reshape((len(first_param), len(second_param))).T.reshape(-1)
 
         self.lesWindow.clearItems()
 
@@ -507,12 +568,12 @@ class LESSSAMap(CommonMapInterface):
             file_name, sp_type, sp_exps = value
             self.lesWindow.addItem(file_name, (sp_type, sp_exps))
 
-        map_values = np.array([value[1] for value in values]).reshape((len(omega0), len(a0_1))).T
+        map_values = np.array([value[1] for value in values]).reshape((len(first_param), len(second_param))).T
 
         self.map_figure.clear()
         map_ax = self.map_figure.add_subplot(111)
-        map_ax.set_xticks(list(range(len(omega0))), labels = omega0)
-        map_ax.set_yticks(list(range(len(a0_1))), labels = a0_1)
+        map_ax.set_xticks(list(range(len(first_param))), labels = first_param)
+        map_ax.set_yticks(list(range(len(second_param))), labels = second_param)
         im = map_ax.imshow(map_values, cmap = cmap, vmin = vmin, vmax = vmax, origin='lower')
         cbar = self.map_figure.colorbar(im)
         ticks_loc = cbar.ax.get_yticks().tolist()

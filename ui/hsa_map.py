@@ -391,7 +391,7 @@ class HSAMap(CommonMapInterface):
     @QtCore.pyqtSlot(list)
     def on_map_redraw(self, values):
         file_names = self.filenames()
-        file_name_list = list(file_names.keys()) # list(map(lambda x: x[0], values))
+        file_name_list = list(file_names.keys())
 
         first_param, second_param = zip(*list(map(lambda key: file_names[key], file_name_list)))
         first_param, second_param = sorted(list(set(first_param))), sorted(list(set(second_param)))
