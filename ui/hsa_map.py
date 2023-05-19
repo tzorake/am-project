@@ -390,10 +390,12 @@ class HSAMap(CommonMapInterface):
 
     @QtCore.pyqtSlot(list)
     def on_map_redraw(self, values):
-        file_names = list(map(lambda x: x[0], values))
+        file_names = self.filenames()
+        file_name_list = list(file_names.keys()) # list(map(lambda x: x[0], values))
 
-        omega0 = sorted(list(set([Helper.get_omega0(file_name) for file_name in file_names])))
-        a0_1 = sorted(list(set([Helper.get_a0_1(file_name) for file_name in file_names])))
+        first_param, second_param = zip(*list(map(lambda key: file_names[key], file_name_list)))
+        first_param, second_param = sorted(list(set(first_param))), sorted(list(set(second_param)))
+        first_param, second_param = list(map(lambda x: x[1], first_param)), list(map(lambda x: x[1], second_param))
 
         color_theme_path = os.path.join(".", "color_theme.json")
         color_theme = Helper.colors(color_theme_path)["hsa_map"]
@@ -408,7 +410,7 @@ class HSAMap(CommonMapInterface):
 
         transposed_values = np.array(
             values, np.dtype([("file_name", "O"), ("osc_type", np.int32), ("omega", np.float32), ("freq", np.ndarray), ("fft", np.ndarray)])
-        ).reshape((len(omega0), len(a0_1))).T.reshape(-1)
+        ).reshape((len(first_param), len(second_param))).T.reshape(-1)
 
         self.fftWindow.clearItems()
 
@@ -416,14 +418,14 @@ class HSAMap(CommonMapInterface):
             file_name, oscillation_type, omega, freq, fft = value
             self.fftWindow.addItem(file_name, (oscillation_type, (omega, freq, fft)))
 
-        map_values = np.array([value[1] for value in values]).reshape((len(omega0), len(a0_1))).T
+        map_values = np.array([value[1] for value in values]).reshape((len(first_param), len(second_param))).T
 
         self.map_figure.clear()
 
         map_ax = self.map_figure.add_subplot(111)
 
-        map_ax.set_xticks(list(range(len(omega0))), labels = omega0)
-        map_ax.set_yticks(list(range(len(a0_1))), labels = a0_1)
+        map_ax.set_xticks(list(range(len(first_param))), labels = first_param)
+        map_ax.set_yticks(list(range(len(second_param))), labels = second_param)
 
         # map_ax.set_xlabel(r'$y$', fontsize=18)
         # map_ax.set_ylabel(r'$x$', fontsize=18)

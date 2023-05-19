@@ -7,7 +7,7 @@ import numpy as np
 class Settings(QtWidgets.QWidget):
     startChanged = QtCore.pyqtSignal(str)
     endChanged = QtCore.pyqtSignal(str)
-    filenamesChanged = QtCore.pyqtSignal(list)
+    filenamesChanged = QtCore.pyqtSignal(dict)
 
     def __init__(self, parent = None):
         super(Settings, self).__init__(parent)
@@ -246,6 +246,13 @@ class Settings(QtWidgets.QWidget):
         def strip(s):
             return s[1:-1] if len(s) > 2 else ""
 
+        def handle_param(param: str, equal: str, dec_point: str):
+            key, value = param.split(equal)
+
+            value = float(value.replace(dec_point, "."))
+
+            return key, value
+
         if (len(pattern) != 0):
             matches = re.findall(param, pattern)
             pattern_with_repl = pattern[:]
@@ -273,29 +280,39 @@ class Settings(QtWidgets.QWidget):
             if os.path.exists(path):
                 files = os.listdir(path)
 
-                filenames = []
+                if len(files) > 0:
+                    filenames = {}
 
-                for file in files:
-                    if os.path.isfile(os.path.join(path, file)):
-                        matches = re.findall(pattern_with_repl, file)
+                    for file in files:
+                        if os.path.isfile(os.path.join(path, file)):
+                            matches = re.findall(pattern_with_repl, file)
 
-                        if len(matches) == 1 and len(matches[0]) == 2:
-                            filenames.append(file)
-                
-                self.found.setText(f"Найдено: {len(filenames)}")
-                self.found.setVisible(True)
+                            if len(matches) == 1 and len(matches[0]) == 2:
+                                first, second = matches[0]
 
-                data = np.loadtxt(os.path.join(path, filenames[0]))
-                shape = data.shape
+                                first_param = handle_param(first, equal, dec_point)
+                                second_param = handle_param(second, equal, dec_point)
 
-                self.timeColumn.addItems(list(map(lambda x: str(x), range(shape[1]))))
-                self.valuesColumn.addItems(list(map(lambda x: str(x), range(shape[1]))))
-                self.valuesColumn.setCurrentIndex(1)
+                                filename = os.path.join(path, file)
 
-                self.start.setText(str(data[0, 0]))
-                self.end.setText(str(data[-1, 0]))
+                                filenames[filename] = (first_param, second_param)
 
-                self.filenamesChanged.emit(filenames)
+                    self.found.setText(f"Найдено: {len(filenames)}")
+                    self.found.setVisible(True)
+
+                    keys = list(filenames.keys())
+                    first_filename = keys[0]
+                    data = np.loadtxt(os.path.join(path, first_filename))
+                    shape = data.shape
+
+                    self.timeColumn.addItems(list(map(lambda x: str(x), range(shape[1]))))
+                    self.valuesColumn.addItems(list(map(lambda x: str(x), range(shape[1]))))
+                    self.valuesColumn.setCurrentIndex(1)
+
+                    self.start.setText(str(data[0, 0]))
+                    self.end.setText(str(data[-1, 0]))
+
+                    self.filenamesChanged.emit(filenames)
 
     def enableLabels(self):
         self.horizontalLabel.setEnabled(not self.horizontalLabel.isEnabled())

@@ -37,7 +37,8 @@ class Worker(QtCore.QObject):
 
         self.started.emit()
 
-        file_names = self.args[0]
+        file_names = list(self.args[0].keys())
+        
         params = self.args[1]
         n_files = len(file_names)
 
@@ -71,6 +72,7 @@ class CommonMapInterface(QtWidgets.QWidget):
 
         self._topPanel = topPanel
         self._params = {}
+        self._filenames = {}
         self.setupUi(topPanel)
 
     def topPanel(self):
@@ -84,6 +86,9 @@ class CommonMapInterface(QtWidgets.QWidget):
 
     def setParam(self, key, value):
         self._params[key] = value
+
+    def filenames(self):
+        return self._filenames
 
     @QtCore.pyqtSlot(dict)
     def on_parameters_update(self, params: dict):
@@ -168,6 +173,10 @@ class CommonMapInterface(QtWidgets.QWidget):
 
         QtWidgets.QWidget.resizeEvent(self, event)
     
+    @QtCore.pyqtSlot(dict)
+    def on_filenames_changed(self, filenames):
+        self._filenames = filenames
+
     @QtCore.pyqtSlot()
     def on_showButton_clicked(self):
         raise NotImplementedError("Subclasses should implement this!")
@@ -177,7 +186,7 @@ class CommonMapInterface(QtWidgets.QWidget):
             raise RuntimeError("Handler function is not defined yet!")
 
         self.worker_thread = QtCore.QThread()
-        self.worker = Worker(init_value = init_value, target = handler, args = (Helper.get_file_names(), self.params()))
+        self.worker = Worker(init_value = init_value, target = handler, args = (self.filenames(), self.params()))
         self.worker.moveToThread(self.worker_thread)
         self.worker_thread.started.connect(self.worker.run)
         self.worker.started.connect(self.on_worker_started)
