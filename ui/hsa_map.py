@@ -427,8 +427,11 @@ class HSAMap(CommonMapInterface):
         map_ax.set_xticks(list(range(len(first_param))), labels = first_param)
         map_ax.set_yticks(list(range(len(second_param))), labels = second_param)
 
-        # map_ax.set_xlabel(r'$y$', fontsize=18)
-        # map_ax.set_ylabel(r'$x$', fontsize=18)
+        hLabel = self.horizontalLabel()
+        vLabel = self.verticalLabel()
+
+        map_ax.set_xlabel(fr'$\mathrm{{ {hLabel} }}$', fontsize=mpl.rcParams["font.size"])
+        map_ax.set_ylabel(fr'$\mathrm{{ {vLabel} }}$', fontsize=mpl.rcParams["font.size"])
 
         im = map_ax.imshow(map_values, cmap = cmap, vmin = vmin, vmax = vmax, origin='lower')
 

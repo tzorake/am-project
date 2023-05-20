@@ -2,17 +2,10 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
-import matplotlib.colors as cl
-import matplotlib.ticker as mticker
-
-from typing import Callable, List, Tuple
 
 import multiprocessing
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor
-
-from utilities.helper import Helper
-
 
 class CustomColors:
     WORKING = "#7dd3fc"
@@ -73,6 +66,8 @@ class CommonMapInterface(QtWidgets.QWidget):
         self._topPanel = topPanel
         self._params = {}
         self._filenames = {}
+        self._horizontalLabel = ''
+        self._verticalLabel = ''
         self.setupUi(topPanel)
 
     def topPanel(self):
@@ -89,6 +84,12 @@ class CommonMapInterface(QtWidgets.QWidget):
 
     def filenames(self):
         return self._filenames
+    
+    def horizontalLabel(self):
+        return self._horizontalLabel
+    
+    def verticalLabel(self):
+        return self._verticalLabel
 
     @QtCore.pyqtSlot(dict)
     def on_parameters_update(self, params: dict):
@@ -176,6 +177,16 @@ class CommonMapInterface(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_filenames_changed(self, filenames):
         self._filenames = filenames
+
+    @QtCore.pyqtSlot(str)
+    def on_horizontalLabel_changed(self, label):
+        print('on_horizontalLabel_changed')
+        self._horizontalLabel = label
+
+    @QtCore.pyqtSlot(str)
+    def on_verticalLabel_changed(self, label):
+        print('on_verticalLabel_changed')
+        self._verticalLabel = label
 
     @QtCore.pyqtSlot()
     def on_showButton_clicked(self):

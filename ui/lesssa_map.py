@@ -5,6 +5,7 @@ import numpy as np
 
 from functools import reduce
 
+import matplotlib as mpl
 import matplotlib.colors as cl
 import matplotlib.ticker as mticker
 
@@ -571,9 +572,18 @@ class LESSSAMap(CommonMapInterface):
         map_values = np.array([value[1] for value in values]).reshape((len(first_param), len(second_param))).T
 
         self.map_figure.clear()
+
         map_ax = self.map_figure.add_subplot(111)
+
         map_ax.set_xticks(list(range(len(first_param))), labels = first_param)
         map_ax.set_yticks(list(range(len(second_param))), labels = second_param)
+
+        hLabel = self.horizontalLabel()
+        vLabel = self.verticalLabel()
+
+        map_ax.set_xlabel(fr'$\mathrm{{ {hLabel} }}$', fontsize=mpl.rcParams["font.size"])
+        map_ax.set_ylabel(fr'$\mathrm{{ {vLabel} }}$', fontsize=mpl.rcParams["font.size"])
+
         im = map_ax.imshow(map_values, cmap = cmap, vmin = vmin, vmax = vmax, origin='lower')
         cbar = self.map_figure.colorbar(im)
         ticks_loc = cbar.ax.get_yticks().tolist()

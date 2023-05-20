@@ -8,6 +8,8 @@ class Settings(QtWidgets.QWidget):
     startChanged = QtCore.pyqtSignal(str)
     endChanged = QtCore.pyqtSignal(str)
     filenamesChanged = QtCore.pyqtSignal(dict)
+    horizontalLabelChanged = QtCore.pyqtSignal(str)
+    verticalLabelChanged = QtCore.pyqtSignal(str)
 
     def __init__(self, parent = None):
         super(Settings, self).__init__(parent)
@@ -20,13 +22,29 @@ class Settings(QtWidgets.QWidget):
         self.start.textChanged.connect(self.on_start_changed)
         self.end.textChanged.connect(self.on_end_changed)
 
+        self.horizontalLabel.textChanged.connect(self.on_horizontalLabel_changed)
+        self.verticalLabel.textChanged.connect(self.on_verticalLabel_changed)
+
+
+    @QtCore.pyqtSlot(str)
     def on_start_changed(self):
         v = self.start.text()
         self.startChanged.emit(v)
 
+    @QtCore.pyqtSlot(str)
     def on_end_changed(self):
         v = self.end.text()
         self.endChanged.emit(v)
+
+    @QtCore.pyqtSlot(str)
+    def on_horizontalLabel_changed(self):
+        v = self.horizontalLabel.text()
+        self.horizontalLabelChanged.emit(v)
+
+    @QtCore.pyqtSlot(str)
+    def on_verticalLabel_changed(self):
+        v = self.verticalLabel.text()
+        self.verticalLabelChanged.emit(v)
 
     def setupUi(self):
         self.setObjectName("Settings")
@@ -317,20 +335,3 @@ class Settings(QtWidgets.QWidget):
     def enableLabels(self):
         self.horizontalLabel.setEnabled(not self.horizontalLabel.isEnabled())
         self.verticalLabel.setEnabled(not self.verticalLabel.isEnabled())
-
-    def get(self, param: str):
-        match param:
-            case "filenames":
-                pass
-            case "timeColumn":
-                return self.timeColumn.text()
-            case "valuesColumn":
-                return self.valuesColumn().text()
-            case "start":
-                return self.start.currentText()
-            case "end":
-                return self.end.currentText()
-            case "horizontalLabel":
-                return self.horizontalLabel.text()
-            case "verticalLabel":
-                return self.verticalLabel.text()

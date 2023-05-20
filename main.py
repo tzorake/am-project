@@ -39,10 +39,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tab.startChanged.connect(self.tab_2.on_start_changed)
         self.tab.endChanged.connect(self.tab_2.on_end_changed)
         self.tab.filenamesChanged.connect(self.tab_2.on_filenames_changed)
+        self.tab.horizontalLabelChanged.connect(self.tab_2.on_horizontalLabel_changed)
+        self.tab.verticalLabelChanged.connect(self.tab_2.on_verticalLabel_changed)
 
         self.tab.startChanged.connect(self.tab_3.on_start_changed)
         self.tab.endChanged.connect(self.tab_3.on_end_changed)
         self.tab.filenamesChanged.connect(self.tab_3.on_filenames_changed)
+        self.tab.horizontalLabelChanged.connect(self.tab_3.on_horizontalLabel_changed)
+        self.tab.verticalLabelChanged.connect(self.tab_3.on_verticalLabel_changed)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
