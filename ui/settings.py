@@ -5,6 +5,7 @@ import re
 import numpy as np
 
 class Settings(QtWidgets.QWidget):
+    folderPathTextChanged = QtCore.pyqtSignal(str)
     startChanged = QtCore.pyqtSignal(str)
     endChanged = QtCore.pyqtSignal(str)
     filenamesChanged = QtCore.pyqtSignal(dict)
@@ -15,13 +16,12 @@ class Settings(QtWidgets.QWidget):
         super(Settings, self).__init__(parent)
         self.setupUi()
 
+        self.folderPath.textChanged.connect(self.on_folderPath_textChanged)
         self.openButton.clicked.connect(self.openFolder)
         self.checkButton.clicked.connect(self.checkParams)
         self.labelsCheckbox.stateChanged.connect(self.enableLabels)
-
         self.start.textChanged.connect(self.on_start_changed)
         self.end.textChanged.connect(self.on_end_changed)
-
         self.horizontalLabel.textChanged.connect(self.on_horizontalLabel_changed)
         self.verticalLabel.textChanged.connect(self.on_verticalLabel_changed)
 
@@ -199,27 +199,6 @@ class Settings(QtWidgets.QWidget):
         self.verticalLayout.addWidget(self.groupBox_3)
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.verticalLayout.addItem(spacerItem2)
-        self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-        self.saveButton = QtWidgets.QPushButton(parent=self)
-        self.saveButton.setObjectName("saveButton")
-        self.horizontalLayout_11.addWidget(self.saveButton)
-        self.status = QtWidgets.QWidget(parent=self)
-        self.status.setMinimumSize(QtCore.QSize(22, 22))
-        self.status.setMaximumSize(QtCore.QSize(22, 22))
-        self.status.setAutoFillBackground(False)
-        self.status.setStyleSheet("background-color: #000")
-        self.status.setObjectName("status")
-        self.horizontalLayout_11.addWidget(self.status)
-        self.progressBar = QtWidgets.QProgressBar(parent=self)
-        self.progressBar.setProperty("value", 24)
-        self.progressBar.setTextVisible(False)
-        self.progressBar.setObjectName("progressBar")
-        self.horizontalLayout_11.addWidget(self.progressBar)
-        self.calculateButton = QtWidgets.QPushButton(parent=self)
-        self.calculateButton.setObjectName("calculateButton")
-        self.horizontalLayout_11.addWidget(self.calculateButton)
-        self.verticalLayout.addLayout(self.horizontalLayout_11)
 
         self.retranslateUi()
 
@@ -240,8 +219,10 @@ class Settings(QtWidgets.QWidget):
         self.labelsCheckbox.setText(_translate("Settings", "Включить отображение меток на осях"))
         self.label_8.setText(_translate("Settings", "Горизонтальная ось"))
         self.label_7.setText(_translate("Settings", "Вертикальная ось"))
-        self.saveButton.setText(_translate("Settings", "Сохранить"))
-        self.calculateButton.setText(_translate("Settings", "Вычислить"))
+
+    def on_folderPath_textChanged(self):
+        v = self.folderPath.text()
+        self.folderPathTextChanged.emit(v)
 
     def openFolder(self):
         path = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите папку")

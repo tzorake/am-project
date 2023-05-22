@@ -63,12 +63,18 @@ class CommonMapInterface(QtWidgets.QWidget):
     def __init__(self, topPanel = None, parent = None):
         super(CommonMapInterface, self).__init__(parent)
 
+        self._folderPath = "."
         self._topPanel = topPanel
         self._params = {}
         self._filenames = {}
-        self._horizontalLabel = ''
-        self._verticalLabel = ''
+        self._horizontalLabel = ""
+        self._verticalLabel = ""
         self.setupUi(topPanel)
+
+        self.saveButton.clicked.connect(self.on_saveButton_clicked)
+
+    def folderPath(self):
+        return self._folderPath
 
     def topPanel(self):
         return self._topPanel
@@ -180,13 +186,23 @@ class CommonMapInterface(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(str)
     def on_horizontalLabel_changed(self, label):
-        print('on_horizontalLabel_changed')
         self._horizontalLabel = label
 
     @QtCore.pyqtSlot(str)
     def on_verticalLabel_changed(self, label):
-        print('on_verticalLabel_changed')
         self._verticalLabel = label
+
+    @QtCore.pyqtSlot(str)
+    def on_folderPath_textChanged(self, x):
+        self._folderPath = x
+
+    @QtCore.pyqtSlot()
+    def on_saveButton_clicked(self):
+        path = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Сохранить файл:", self.folderPath(), "Images (*.png *.jpg *.svg)"
+        )
+
+        self.map_figure.savefig(path[0])
 
     @QtCore.pyqtSlot()
     def on_showButton_clicked(self):
