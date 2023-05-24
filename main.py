@@ -12,21 +12,26 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent = None):
         super().__init__(parent)
         self.setupUi()
+        
         self.setWindowIcon(QtGui.QIcon(":/icons/icon.png"))
 
+        self.tab.folderPathTextChanged.connect(self.tab_2.on_folderPath_textChanged)
+        self.tab.filenamesChanged.connect(self.tab_2.on_filenames_changed)
         self.tab.startChanged.connect(self.tab_2.on_start_changed)
         self.tab.endChanged.connect(self.tab_2.on_end_changed)
-        self.tab.filenamesChanged.connect(self.tab_2.on_filenames_changed)
+        self.tab.timeColumnChanged.connect(self.tab_2.on_timeColumn_changed)
+        self.tab.valuesColumnChanged.connect(self.tab_2.on_valuesColumn_changed)
         self.tab.horizontalLabelChanged.connect(self.tab_2.on_horizontalLabel_changed)
         self.tab.verticalLabelChanged.connect(self.tab_2.on_verticalLabel_changed)
-        self.tab.folderPathTextChanged.connect(self.tab_2.on_folderPath_textChanged)
 
+        self.tab.folderPathTextChanged.connect(self.tab_3.on_folderPath_textChanged)
+        self.tab.filenamesChanged.connect(self.tab_3.on_filenames_changed)
         self.tab.startChanged.connect(self.tab_3.on_start_changed)
         self.tab.endChanged.connect(self.tab_3.on_end_changed)
-        self.tab.filenamesChanged.connect(self.tab_3.on_filenames_changed)
+        self.tab.timeColumnChanged.connect(self.tab_3.on_timeColumn_changed)
+        self.tab.valuesColumnChanged.connect(self.tab_3.on_valuesColumn_changed)
         self.tab.horizontalLabelChanged.connect(self.tab_3.on_horizontalLabel_changed)
         self.tab.verticalLabelChanged.connect(self.tab_3.on_verticalLabel_changed)
-        self.tab.folderPathTextChanged.connect(self.tab_3.on_folderPath_textChanged)
     
     def setupUi(self):
         self.setObjectName("AMP")

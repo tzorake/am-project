@@ -16,6 +16,8 @@ from utilities.lesssa import LESSSA
 
 
 def handler(file_name, params):
+    timeColumn = params["time_column"]
+    valuesColumn = params["values_column"]
     start_time = params["start_time"]
     end_time = params["end_time"]
     e_dim = params["e_dim"]
@@ -27,7 +29,7 @@ def handler(file_name, params):
     gamma = params["gamma"]
 
     data = np.loadtxt(file_name)
-    t, w = data[:, 0], data[:, 1]
+    t, w = data[:, timeColumn], data[:, valuesColumn]
 
     lesssa = LESSSA(e_dim, tau, iterations, eps_min, eps_step, min_neighbors)
 
@@ -433,7 +435,6 @@ class LESSSTopPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_gamma_finished(self):
-        print("on_gamma_finished")
         x = self.gamma.text()
         self.gammaChanged.emit(x)
 
@@ -444,7 +445,7 @@ class LESSSAMap(CommonMapInterface):
         self.lesWindow = LESWindow(self)
         top = self.topPanel()
 
-        self.default_parameters = {
+        self._default_parameters = {
             "start_time": 0.0,
             "end_time": 0.0,
             "e_dim": 4,
@@ -455,7 +456,7 @@ class LESSSAMap(CommonMapInterface):
             "min_neighbors": 30,
             "gamma": 0.001
         }
-        self.field_mapping = {
+        self._field_mapping = {
             "start_time": top.start,
             "end_time": top.end,
             "e_dim": top.eDim,
@@ -467,7 +468,10 @@ class LESSSAMap(CommonMapInterface):
             "gamma": top.gamma
         }
 
-        self.on_parameters_update(self.default_parameters)
+        self._default_parameters["time_column"] = self._timeColumn
+        self._default_parameters["values_column"] = self._valuesColumn
+
+        self.on_parameters_update(self._default_parameters)
 
         top.startChanged.connect(self.on_start_update)
         top.endChanged.connect(self.on_end_update)

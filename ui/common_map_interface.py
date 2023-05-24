@@ -64,17 +64,30 @@ class CommonMapInterface(QtWidgets.QWidget):
         super(CommonMapInterface, self).__init__(parent)
 
         self._folderPath = "."
-        self._topPanel = topPanel
-        self._params = {}
         self._filenames = {}
+        self._timeColumn = 0
+        self._valuesColumn = 1
+        self._topPanel = topPanel
         self._horizontalLabel = ""
         self._verticalLabel = ""
+
+        self._params = {}
+
         self.setupUi(topPanel)
 
         self.saveButton.clicked.connect(self.on_saveButton_clicked)
 
     def folderPath(self):
         return self._folderPath
+
+    def filenames(self):
+        return self._filenames
+
+    def timeColumn(self):
+        return self._timeColumn
+
+    def valuesColumn(self):
+        return self._valuesColumn
 
     def topPanel(self):
         return self._topPanel
@@ -88,9 +101,6 @@ class CommonMapInterface(QtWidgets.QWidget):
     def setParam(self, key, value):
         self._params[key] = value
 
-    def filenames(self):
-        return self._filenames
-    
     def horizontalLabel(self):
         return self._horizontalLabel
     
@@ -103,8 +113,9 @@ class CommonMapInterface(QtWidgets.QWidget):
 
         for key in self.params().keys():
             param = params[key]
-            field = self.field_mapping[key]
-            field.setText(str(param))
+            if key in self._field_mapping:
+                field = self._field_mapping[key]
+                field.setText(str(param))
 
     def setupUi(self, topPanel):
         self.setObjectName("CommonMapInterface")
@@ -180,6 +191,16 @@ class CommonMapInterface(QtWidgets.QWidget):
 
         QtWidgets.QWidget.resizeEvent(self, event)
     
+    @QtCore.pyqtSlot(str)
+    def on_timeColumn_changed(self, x):
+        self._params["time_column"] = int(x)
+        print(x)
+
+    @QtCore.pyqtSlot(str)
+    def on_valuesColumn_changed(self, x):
+        self._params["values_column"] = int(x)
+        print(x)
+
     @QtCore.pyqtSlot(dict)
     def on_filenames_changed(self, filenames):
         self._filenames = filenames

@@ -17,6 +17,8 @@ from utilities.hsa import HeuristicSpectrumAnalyzer
 
 
 def handler(file_name, params):
+    timeColumn = params["time_column"]
+    valuesColumn = params["values_column"]
     start_time = params["start_time"]
     end_time = params["end_time"]
     omega = params["omega"]
@@ -24,7 +26,7 @@ def handler(file_name, params):
     time_step = params["time_step"]
 
     data = np.loadtxt(file_name)
-    t, w = data[:, 0], data[:, 1]
+    t, w = data[:, timeColumn], data[:, valuesColumn]
 
     hsa = HeuristicSpectrumAnalyzer()
 
@@ -317,7 +319,7 @@ class HSATopPanel(QtWidgets.QWidget):
     
     @QtCore.pyqtSlot()
     def on_timeStep_finished(self):
-        x = self.omega.text()
+        x = self.timeStep.text()
         self.timeStepChanged.emit(x)
 
 
@@ -328,25 +330,28 @@ class HSAMap(CommonMapInterface):
         self.fftWindow = FFTWindow(self)
         top = self.topPanel()
 
-        self.default_parameters = {
+        self._default_parameters = {
             "omega": 20.3,
             "time_step": 0.015625,
             "start_time": 0.0,
             "end_time": 0.0,
         }
-        self.field_mapping = {
+        self._field_mapping = {
             "omega": top.omega,
             "time_step": top.timeStep,
             "start_time": top.start,
             "end_time": top.end,
         }
 
-        self.on_parameters_update(self.default_parameters)
+        self._default_parameters["time_column"] = self._timeColumn
+        self._default_parameters["values_column"] = self._valuesColumn
 
-        top.startChanged.connect(self.on_start_update)
-        top.endChanged.connect(self.on_end_update)
+        self.on_parameters_update(self._default_parameters)
+
         top.omegaChanged.connect(self.on_omega_update)
         top.timeStepChanged.connect(self.on_timeStep_update)
+        top.startChanged.connect(self.on_start_update)
+        top.endChanged.connect(self.on_end_update)
 
         self.showButton.clicked.connect(self.on_showButton_clicked)
         self.calculateButton.clicked.connect(self.on_calculateButton_clicked)

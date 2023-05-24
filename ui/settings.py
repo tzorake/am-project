@@ -6,6 +6,8 @@ import numpy as np
 
 class Settings(QtWidgets.QWidget):
     folderPathTextChanged = QtCore.pyqtSignal(str)
+    timeColumnChanged = QtCore.pyqtSignal(str)
+    valuesColumnChanged = QtCore.pyqtSignal(str)
     startChanged = QtCore.pyqtSignal(str)
     endChanged = QtCore.pyqtSignal(str)
     filenamesChanged = QtCore.pyqtSignal(dict)
@@ -17,34 +19,15 @@ class Settings(QtWidgets.QWidget):
         self.setupUi()
 
         self.folderPath.textChanged.connect(self.on_folderPath_textChanged)
-        self.openButton.clicked.connect(self.openFolder)
-        self.checkButton.clicked.connect(self.checkParams)
-        self.labelsCheckbox.stateChanged.connect(self.enableLabels)
-        self.start.textChanged.connect(self.on_start_changed)
-        self.end.textChanged.connect(self.on_end_changed)
-        self.horizontalLabel.textChanged.connect(self.on_horizontalLabel_changed)
-        self.verticalLabel.textChanged.connect(self.on_verticalLabel_changed)
-
-
-    @QtCore.pyqtSlot(str)
-    def on_start_changed(self):
-        v = self.start.text()
-        self.startChanged.emit(v)
-
-    @QtCore.pyqtSlot(str)
-    def on_end_changed(self):
-        v = self.end.text()
-        self.endChanged.emit(v)
-
-    @QtCore.pyqtSlot(str)
-    def on_horizontalLabel_changed(self):
-        v = self.horizontalLabel.text()
-        self.horizontalLabelChanged.emit(v)
-
-    @QtCore.pyqtSlot(str)
-    def on_verticalLabel_changed(self):
-        v = self.verticalLabel.text()
-        self.verticalLabelChanged.emit(v)
+        self.openButton.clicked.connect(self.on_openButton_clicked)
+        self.checkButton.clicked.connect(self.on_checkButton_clicked)
+        self.timeColumn.currentTextChanged.connect(self.on_timeColumn_currentTextChanged)
+        self.valuesColumn.currentTextChanged.connect(self.on_valuesColumn_currentTextChanged)
+        self.start.textChanged.connect(self.on_start_textChanged)
+        self.end.textChanged.connect(self.on_end_textChanged)
+        self.labelsCheckbox.stateChanged.connect(self.on_labelsCheckbox_stateChanged)
+        self.horizontalLabel.textChanged.connect(self.on_horizontalLabel_textChanged)
+        self.verticalLabel.textChanged.connect(self.on_verticalLabel_textChanged)
 
     def setupUi(self):
         self.setObjectName("Settings")
@@ -220,17 +203,53 @@ class Settings(QtWidgets.QWidget):
         self.label_8.setText(_translate("Settings", "Горизонтальная ось"))
         self.label_7.setText(_translate("Settings", "Вертикальная ось"))
 
+    @QtCore.pyqtSlot()
     def on_folderPath_textChanged(self):
         v = self.folderPath.text()
         self.folderPathTextChanged.emit(v)
 
-    def openFolder(self):
+    @QtCore.pyqtSlot()
+    def on_openButton_clicked(self):
         path = QtWidgets.QFileDialog.getExistingDirectory(self, "Выберите папку")
 
         if os.path.exists(path):
             self.folderPath.setText(path)
 
-    def checkParams(self):
+    @QtCore.pyqtSlot(str)
+    def on_timeColumn_currentTextChanged(self, v):
+        self.timeColumnChanged.emit(v)
+
+    @QtCore.pyqtSlot(str)
+    def on_valuesColumn_currentTextChanged(self, v):
+        self.valuesColumnChanged.emit(v)
+
+    @QtCore.pyqtSlot()
+    def on_start_textChanged(self):
+        v = self.start.text()
+        self.startChanged.emit(v)
+
+    @QtCore.pyqtSlot()
+    def on_end_textChanged(self):
+        v = self.end.text()
+        self.endChanged.emit(v)
+
+    @QtCore.pyqtSlot()
+    def on_labelsCheckbox_stateChanged(self):
+        self.horizontalLabel.setEnabled(not self.horizontalLabel.isEnabled())
+        self.verticalLabel.setEnabled(not self.verticalLabel.isEnabled())
+
+    @QtCore.pyqtSlot()
+    def on_horizontalLabel_textChanged(self):
+        v = self.horizontalLabel.text()
+        self.horizontalLabelChanged.emit(v)
+
+    @QtCore.pyqtSlot()
+    def on_verticalLabel_textChanged(self):
+        v = self.verticalLabel.text()
+        self.verticalLabelChanged.emit(v)
+
+    @QtCore.pyqtSlot()
+    def on_checkButton_clicked(self):
         path = self.folderPath.text()
         pattern = self.pattern.text()
 
@@ -312,7 +331,3 @@ class Settings(QtWidgets.QWidget):
                     self.end.setText(str(data[-1, 0]))
 
                     self.filenamesChanged.emit(filenames)
-
-    def enableLabels(self):
-        self.horizontalLabel.setEnabled(not self.horizontalLabel.isEnabled())
-        self.verticalLabel.setEnabled(not self.verticalLabel.isEnabled())
