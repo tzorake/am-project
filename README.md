@@ -1,20 +1,10 @@
 # hsa-project
 
-## Explanation
-`txt` - folder with test files \
-`hsa.py` - Heuristic Spectrum Analyzer \
-`lesss.py` - Lyaponov Lyapunov Exponent Spectrum by Sano Sawada \
-`main.py` - Simple implementation of goal program
+Для использования программы необходимо установить Python 3.10 или выше. \
 
-## How to install
-```
-git clone git@github.com:tzorake/hsa-project.git
-
-cd hsa-project
-
-py -m venv venv
-
-venv\Scripts\activate
-
-pip install -r requirements.txt
+## Как установить
+```console
+git clone git@github.com:tzorake/am-project.git
+cd am-project
+setup.bat
 ```
